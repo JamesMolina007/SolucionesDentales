@@ -4,11 +4,21 @@
  */
 package Pantallas;
 
+import Administradores.CitasAdmin;
+import Administradores.PacientesAdmin;
+import Administradores.ProcedimientosAdmin;
 import Administradores.UsuariosAdmin;
 import Modelos.Administradores;
+import Modelos.Citas;
 import Modelos.Doctores;
+import Modelos.Pacientes;
+import Modelos.Procedimientos;
 import Modelos.Usuarios;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -22,14 +32,33 @@ public class Administrador extends javax.swing.JFrame {
      * Creates new form Administrador
      */
     private Usuarios usuarioActual;
+
     private UsuariosAdmin usuariosAdmin = new UsuariosAdmin();
+    private ProcedimientosAdmin procedimientosAdmin = new ProcedimientosAdmin();
+    private PacientesAdmin pacientesAdmin = new PacientesAdmin();
+    private CitasAdmin citasAdmin = new CitasAdmin();
+    
     private ArrayList<Usuarios> usuarios = new ArrayList();
+    private ArrayList<Pacientes> pacientes = new ArrayList();
+    private ArrayList<Procedimientos> procedimientos = new ArrayList();
+    private ArrayList<Citas> citas = new ArrayList();
+    
     public Administrador() {
         initComponents();
         this.setLocationRelativeTo(null);
-        cargarTablaUsuarios();
-        lbl_id.setVisible(false);
         
+        cargarTablaUsuarios();
+        cargarTablaPacientes();
+        cargarListaProcedimientos();
+        cargarTablaCitas();
+        
+        lbl_id.setVisible(false);
+        lbl_idPaciente.setVisible(false);
+        lbl_idCita.setVisible(false);
+        
+        deshabilitarUsuario();
+        deshabilitarPaciente();
+        deshabilitarCitas();
     }
 
     public void setUsuario(Usuarios usuario){
@@ -39,11 +68,52 @@ public class Administrador extends javax.swing.JFrame {
     private void cargarTablaUsuarios(){
         usuarios = usuariosAdmin.obtenerUsuarios();
         DefaultTableModel modelo = (DefaultTableModel)jt_usuarios.getModel();
+        DefaultComboBoxModel modeloCB = (DefaultComboBoxModel)cb_doctores.getModel();
+        modeloCB.removeAllElements();
         int cantidadFilas = modelo.getRowCount();
         for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
         for (Usuarios usuario : usuarios) {
+            if(usuario instanceof Doctores) modeloCB.addElement(usuario);
             String tipo = (usuario instanceof Doctores) ? "Doctor" : "Administrador";
             Object[] fila = {usuario.getId(), usuario.getUsuario(), usuario.getNombre(), tipo};
+            modelo.addRow(fila);
+        }
+    }
+    
+    private void cargarTablaPacientes(){
+        pacientes = pacientesAdmin.obtenerPacientes();
+        DefaultTableModel modelo = (DefaultTableModel)jt_pacientes.getModel();
+        DefaultComboBoxModel modeloCB = (DefaultComboBoxModel)cb_pacientes.getModel();
+        modeloCB.removeAllElements();
+        int cantidadFilas = modelo.getRowCount();
+        for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
+        for (Pacientes paciente : pacientes) {
+            modeloCB.addElement(paciente);
+            Object[] fila = {paciente.getId(), paciente.getPaciente(), paciente.getCorreo(), paciente.getTelefono()};
+            modelo.addRow(fila);
+        }
+    }
+    
+    private void cargarListaProcedimientos(){
+        procedimientos = procedimientosAdmin.obtenerProcedimientos();
+        DefaultListModel modelo = (DefaultListModel)jl_procedimientoExistente.getModel();
+        modelo.removeAllElements();
+        for (Procedimientos procedimiento : procedimientos) {
+            modelo.addElement(procedimiento);
+        }
+    }
+    
+    private void cargarTablaCitas(){
+        citas = citasAdmin.obtenerCitas();
+        DefaultTableModel modelo = (DefaultTableModel)jt_citas.getModel();
+        int cantidadFilas = modelo.getRowCount();
+        for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
+        for (Citas cita : citas) {
+            String procedimientosStr = "";
+            for (Procedimientos p : cita.getProcedimiento()) {
+                procedimientosStr += p.getNombre() + ", ";
+            }
+            Object[] fila = {cita.getId(), cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr};
             modelo.addRow(fila);
         }
     }
@@ -60,9 +130,9 @@ public class Administrador extends javax.swing.JFrame {
         jDateChooser1 = new com.toedter.calendar.JDateChooser();
         jLabel1 = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel4 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        tb_paciente = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         cb_doctores = new javax.swing.JComboBox<>();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -75,7 +145,7 @@ public class Administrador extends javax.swing.JFrame {
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jt_pacientes = new javax.swing.JTable();
+        jt_citas = new javax.swing.JTable();
         jLabel9 = new javax.swing.JLabel();
         tb_correo = new javax.swing.JTextField();
         tb_celular = new javax.swing.JTextField();
@@ -85,6 +155,23 @@ public class Administrador extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         cb_hora = new javax.swing.JComboBox<>();
         btn_guardar = new javax.swing.JButton();
+        btn_eliminar = new javax.swing.JButton();
+        lbl_idCita = new javax.swing.JLabel();
+        cb_pacientes = new javax.swing.JComboBox<>();
+        btn_nuevaCita = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jt_pacientes = new javax.swing.JTable();
+        jLabel13 = new javax.swing.JLabel();
+        tb_pacienteAdmin = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
+        tb_correoAdmin = new javax.swing.JTextField();
+        jLabel15 = new javax.swing.JLabel();
+        tb_celularAdmin = new javax.swing.JTextField();
+        btn_guardarPaciente = new javax.swing.JButton();
+        btn_eliminarPaciente = new javax.swing.JButton();
+        lbl_idPaciente = new javax.swing.JLabel();
+        btn_nuevoPaciente = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         tb_usuario = new javax.swing.JTextField();
@@ -99,13 +186,27 @@ public class Administrador extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jt_usuarios = new javax.swing.JTable();
         lbl_id = new javax.swing.JLabel();
+        btn_nuevoUsuario = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("Interfaz de Admnistración de Citas y Usuarios");
 
-        jLabel6.setText("Nombre de Paciente:");
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 778, Short.MAX_VALUE)
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 524, Short.MAX_VALUE)
+        );
+
+        jTabbedPane1.addTab("Citas", jPanel4);
+
+        jLabel6.setText("Paciente:");
 
         jLabel7.setText("Doctor Encargado:");
 
@@ -115,17 +216,34 @@ public class Administrador extends javax.swing.JFrame {
             }
         });
 
+        jl_procedimientoExistente.setModel(new DefaultListModel());
         jScrollPane2.setViewportView(jl_procedimientoExistente);
 
         jLabel8.setText("Procedimientos");
 
+        jl_procedimientoElegido.setModel(new DefaultListModel());
         jScrollPane3.setViewportView(jl_procedimientoElegido);
 
         btn_agregarProcedimiento.setText("+");
+        btn_agregarProcedimiento.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_agregarProcedimientoActionPerformed(evt);
+            }
+        });
 
         btn_quitarProcedimiento.setText("-");
+        btn_quitarProcedimiento.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_quitarProcedimientoActionPerformed(evt);
+            }
+        });
 
         jButton3.setText(">");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("<");
         jButton4.addActionListener(new java.awt.event.ActionListener() {
@@ -134,17 +252,22 @@ public class Administrador extends javax.swing.JFrame {
             }
         });
 
-        jt_pacientes.setModel(new javax.swing.table.DefaultTableModel(
+        jt_citas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Paciente", "Doctor", "Procedimiento", "Fecha", "Correo", "Teléfono"
+                "ID", "Paciente", "Doctor", "Fecha", "Procedimientos"
             }
         ));
-        jScrollPane4.setViewportView(jt_pacientes);
+        jt_citas.setDefaultEditor(Object.class, null);
+        jScrollPane4.setViewportView(jt_citas);
 
-        jLabel9.setText("Correo (opcional):");
+        jLabel9.setText("Correo:");
+
+        tb_correo.setEnabled(false);
+
+        tb_celular.setEnabled(false);
 
         jLabel10.setText("Teléfono Celular:");
 
@@ -160,6 +283,38 @@ public class Administrador extends javax.swing.JFrame {
         });
 
         btn_guardar.setText("Guardar");
+        btn_guardar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_guardarActionPerformed(evt);
+            }
+        });
+
+        btn_eliminar.setText("Eliminar");
+        btn_eliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_eliminarActionPerformed(evt);
+            }
+        });
+
+        lbl_idCita.setText("-1");
+
+        cb_pacientes.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cb_pacientesItemStateChanged(evt);
+            }
+        });
+        cb_pacientes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cb_pacientesActionPerformed(evt);
+            }
+        });
+
+        btn_nuevaCita.setText("Nuevo");
+        btn_nuevaCita.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_nuevaCitaActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -167,50 +322,65 @@ public class Administrador extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6)
+                        .addComponent(jLabel9)
+                        .addComponent(jLabel10)
+                        .addComponent(jLabel7)
+                        .addComponent(jLabel8)
+                        .addComponent(jLabel11)
+                        .addComponent(jLabel12)
+                        .addComponent(cb_hora, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jButton3)
+                                        .addComponent(jButton4)))
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(btn_agregarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(btn_quitarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tb_paciente, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6)
-                    .addComponent(jLabel9)
-                    .addComponent(jLabel10)
-                    .addComponent(jLabel7)
-                    .addComponent(jLabel8)
-                    .addComponent(jLabel11)
-                    .addComponent(jLabel12)
-                    .addComponent(cb_hora, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jButton3)
-                                    .addComponent(jButton4)))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(btn_agregarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btn_quitarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 528, Short.MAX_VALUE)
+                        .addGap(18, 18, 18))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btn_nuevaCita, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btn_guardar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(btn_guardar, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))))
-                .addGap(12, 12, 12)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 523, Short.MAX_VALUE)
-                .addGap(12, 12, 12))
+                        .addComponent(btn_eliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(57, 57, 57)
+                        .addComponent(lbl_idCita)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(19, 19, 19)
+                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_guardar)
+                    .addComponent(btn_eliminar)
+                    .addComponent(lbl_idCita)
+                    .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_nuevaCita))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(19, 19, 19)
-                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tb_paciente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -228,7 +398,7 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
                         .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel8)
@@ -240,19 +410,116 @@ public class Administrador extends javax.swing.JFrame {
                                 .addComponent(jButton4))
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
-                                .addComponent(jScrollPane3))))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addComponent(jScrollPane4)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_agregarProcedimiento)
-                    .addComponent(btn_quitarProcedimiento)
-                    .addComponent(btn_guardar))
+                                .addComponent(jScrollPane3)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_agregarProcedimiento)
+                            .addComponent(btn_quitarProcedimiento)))
+                    .addComponent(jScrollPane4))
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Citas", jPanel1);
+        jTabbedPane1.addTab("Admin. Citas", jPanel1);
+
+        jt_usuarios.setDefaultEditor(Object.class, null);
+        jt_pacientes.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ID", "Usuario", "Correo", "Telefono"
+            }
+        ));
+        jt_pacientes.setDefaultEditor(Object.class, null);
+        jt_pacientes.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jt_pacientesMouseClicked(evt);
+            }
+        });
+        jScrollPane5.setViewportView(jt_pacientes);
+
+        jLabel13.setText("Nombre de Paciente:");
+
+        jLabel14.setText("Correo (opcional):");
+
+        jLabel15.setText("Teléfono Celular:");
+
+        btn_guardarPaciente.setText("Guardar");
+        btn_guardarPaciente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_guardarPacienteActionPerformed(evt);
+            }
+        });
+
+        btn_eliminarPaciente.setText("Eliminar");
+        btn_eliminarPaciente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_eliminarPacienteActionPerformed(evt);
+            }
+        });
+
+        lbl_idPaciente.setText("-1");
+
+        btn_nuevoPaciente.setText("Nuevo");
+        btn_nuevoPaciente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_nuevoPacienteActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(tb_pacienteAdmin, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
+                    .addComponent(tb_correoAdmin, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
+                    .addComponent(tb_celularAdmin, javax.swing.GroupLayout.DEFAULT_SIZE, 220, Short.MAX_VALUE)
+                    .addComponent(jLabel13)
+                    .addComponent(jLabel14)
+                    .addComponent(jLabel15)
+                    .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_idPaciente)
+                    .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 515, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(25, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tb_pacienteAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel14)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tb_correoAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel15)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tb_celularAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(lbl_idPaciente)))
+                .addContainerGap(28, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Admin. Pacientes", jPanel3);
 
         jLabel2.setText("Usuario:");
 
@@ -261,6 +528,11 @@ public class Administrador extends javax.swing.JFrame {
         jLabel4.setText("Contraseña:");
 
         cb_tipoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Doctor" }));
+        cb_tipoUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cb_tipoUsuarioActionPerformed(evt);
+            }
+        });
 
         jLabel5.setText("Tipo de Usuario");
 
@@ -278,6 +550,7 @@ public class Administrador extends javax.swing.JFrame {
             }
         });
 
+        jt_usuarios.setDefaultEditor(Object.class, null);
         jt_usuarios.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -293,27 +566,36 @@ public class Administrador extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jt_usuarios);
 
+        lbl_id.setText("-1");
+
+        btn_nuevoUsuario.setText("Nuevo");
+        btn_nuevoUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_nuevoUsuarioActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jLabel5)
-                        .addComponent(jLabel4)
-                        .addComponent(tb_contrasena, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
-                        .addComponent(jLabel3)
-                        .addComponent(tb_nombre, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
-                        .addComponent(jLabel2)
-                        .addComponent(tb_usuario)
-                        .addComponent(cb_tipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(lbl_id))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel4)
+                    .addComponent(tb_contrasena, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+                    .addComponent(jLabel3)
+                    .addComponent(tb_nombre, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+                    .addComponent(jLabel2)
+                    .addComponent(tb_usuario)
+                    .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_id)
+                    .addComponent(cb_tipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 492, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 497, Short.MAX_VALUE)
                 .addGap(30, 30, 30))
         );
         jPanel2Layout.setVerticalGroup(
@@ -323,102 +605,64 @@ public class Administrador extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_usuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_contrasena, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cb_tipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addComponent(cb_tipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addGap(53, 53, 53)
                         .addComponent(lbl_id)))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("Usuarios", jPanel2);
+        jTabbedPane1.addTab("Admin. Usuarios", jPanel2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane1)
-                .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(125, 125, 125))
+                .addContainerGap(10, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(125, 125, 125))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(15, 15, 15)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jTabbedPane1)
-                .addContainerGap())
+                .addGap(12, 12, 12))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cb_doctoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_doctoresActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cb_doctoresActionPerformed
-
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton4ActionPerformed
-
-    private void cb_horaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_horaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cb_horaActionPerformed
-
-    private void btn_guardarUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_guardarUsuarioActionPerformed
-        int id = Integer.parseInt(lbl_id.getText());
-        String nombre = tb_nombre.getText();
-        String tipo = cb_tipoUsuario.getSelectedItem().toString();
-        String contrasena = tb_contrasena.getText();
-        String usuario = tb_usuario.getText();
-        
-        if(!nombre.isEmpty() && !tipo.isEmpty() && !contrasena.isEmpty() && !usuario.isEmpty()){
-            Usuarios usuarioObj;
-            if(tipo.equals("Doctor"))
-                usuarioObj = new Doctores(usuario, contrasena, nombre, id);
-            else
-                usuarioObj = new Administradores(usuario, contrasena, nombre, id);
-            if( usuariosAdmin.guardarUsuario(usuarioObj) ){
-                JOptionPane.showMessageDialog(this, "Usuario guardado");
-                tb_nombre.setText("");
-                cb_tipoUsuario.setSelectedIndex(0);
-                tb_contrasena.setText("");
-                tb_usuario.setText("");
-                lbl_id.setText("");
-                cargarTablaUsuarios();
-            }else{
-                JOptionPane.showMessageDialog(this, "Ha ocurrido un error");
-            }
-        }else{
-            JOptionPane.showMessageDialog(this, "Llene todos los campos antes de guardar un usuario nuevo");
-        }
-    }//GEN-LAST:event_btn_guardarUsuarioActionPerformed
-
     private void jt_usuariosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_usuariosMouseClicked
         DefaultTableModel modelo = (DefaultTableModel)jt_usuarios.getModel();
-        if (evt.getClickCount() == 1) { 
+        if (evt.getClickCount() == 1) {
             int filaSeleccionada = jt_usuarios.getSelectedRow();
             int id = (int)modelo.getValueAt(filaSeleccionada, 0);
             Usuarios usuario = usuariosAdmin.obtenerUsuario(id);
@@ -429,6 +673,7 @@ public class Administrador extends javax.swing.JFrame {
                 cb_tipoUsuario.setSelectedIndex(((usuario instanceof Doctores) ? 1:0));
                 lbl_id.setText(Integer.toString(id));
             }
+            habilitarUsuario();
         }
     }//GEN-LAST:event_jt_usuariosMouseClicked
 
@@ -446,10 +691,307 @@ public class Administrador extends javax.swing.JFrame {
             tb_usuario.setText("");
             lbl_id.setText("");
             cargarTablaUsuarios();
+            deshabilitarUsuario();
         } else {
         }
     }//GEN-LAST:event_btn_eliminarUsuarioActionPerformed
 
+    private void btn_guardarUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_guardarUsuarioActionPerformed
+        int id = Integer.parseInt(lbl_id.getText());
+        String nombre = tb_nombre.getText();
+        String tipo = cb_tipoUsuario.getSelectedItem().toString();
+        String contrasena = tb_contrasena.getText();
+        String usuario = tb_usuario.getText();
+
+        if(!nombre.isEmpty() && !tipo.isEmpty() && !contrasena.isEmpty() && !usuario.isEmpty()){
+            Usuarios usuarioObj;
+            if(tipo.equals("Doctor"))
+            usuarioObj = new Doctores(usuario, contrasena, nombre, id);
+            else
+            usuarioObj = new Administradores(usuario, contrasena, nombre, id);
+            if( usuariosAdmin.guardarUsuario(usuarioObj) ){
+                JOptionPane.showMessageDialog(this, "Usuario guardado");
+                tb_nombre.setText("");
+                cb_tipoUsuario.setSelectedIndex(0);
+                tb_contrasena.setText("");
+                tb_usuario.setText("");
+                lbl_id.setText("");
+                cargarTablaUsuarios();
+                deshabilitarUsuario();
+            }else{
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error");
+            }
+        }else{
+            JOptionPane.showMessageDialog(this, "Llene todos los campos antes de guardar un usuario nuevo");
+        }
+    }//GEN-LAST:event_btn_guardarUsuarioActionPerformed
+
+    private void cb_horaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_horaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cb_horaActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        int index = jl_procedimientoElegido.getSelectedIndex();
+        if(index != -1){
+            DefaultListModel modelo = (DefaultListModel)jl_procedimientoElegido.getModel();
+            Procedimientos procedimiento = (Procedimientos)modelo.getElementAt(index);
+        }
+
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void btn_agregarProcedimientoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_agregarProcedimientoActionPerformed
+        String procedimiento = (String)JOptionPane.showInputDialog("Ingrese el procedimiento");
+        if(!procedimiento.isEmpty()){
+            if(procedimientosAdmin.guardarProcedimiento(procedimiento)){
+                JOptionPane.showMessageDialog(this,"Procedimiento agregado exitosamente");
+                cargarListaProcedimientos();
+            }else{
+                JOptionPane.showMessageDialog(this,"Ocurrió un error al agregar");
+            }
+        }
+    }//GEN-LAST:event_btn_agregarProcedimientoActionPerformed
+
+    private void cb_doctoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_doctoresActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cb_doctoresActionPerformed
+
+    private void btn_quitarProcedimientoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_quitarProcedimientoActionPerformed
+        int index = jl_procedimientoExistente.getSelectedIndex();
+        if(index != -1){
+            int respuesta = JOptionPane.showConfirmDialog(null, "¿Estás seguro que quieres eliminar?", "Confirmación", JOptionPane.YES_NO_OPTION);
+            if (respuesta == JOptionPane.YES_OPTION) {
+                DefaultListModel modelo = (DefaultListModel)jl_procedimientoExistente.getModel();
+                Procedimientos procedimiento = (Procedimientos)modelo.getElementAt(index);
+                if(procedimientosAdmin.borrarProcedimiento(procedimiento)){
+                    JOptionPane.showMessageDialog(this,"Procedimiento borrado");
+                    cargarListaProcedimientos();
+                }else{
+                    JOptionPane.showMessageDialog(this,"Ocurrió un error al eliminar");
+                }
+            }
+        }
+    }//GEN-LAST:event_btn_quitarProcedimientoActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        int index = jl_procedimientoExistente.getSelectedIndex();
+        if(index != -1){
+            DefaultListModel modelo = (DefaultListModel)jl_procedimientoExistente.getModel();
+            Procedimientos procedimiento = (Procedimientos)modelo.getElementAt(index);
+            
+            DefaultListModel modeloDestino = (DefaultListModel)jl_procedimientoElegido.getModel();
+            modeloDestino.addElement(procedimiento);
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void btn_guardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_guardarActionPerformed
+        
+        int id = Integer.parseInt(lbl_idCita.getText());
+        int indexPaciente = cb_pacientes.getSelectedIndex();
+        if(indexPaciente != -1){
+            int indexDoctor = cb_doctores.getSelectedIndex();
+            if(indexDoctor != -1){
+                String hora = (String)cb_hora.getSelectedItem();
+                Date fecha = jd_fecha.getDate();
+                if(fecha != null){
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
+                    String fechaStr = dateFormat.format(fecha);
+                    DefaultListModel modelo = (DefaultListModel)jl_procedimientoElegido.getModel();
+                    if(modelo.getSize() > 0){
+                        Pacientes pacienteSeleccionado = (Pacientes)cb_pacientes.getSelectedItem();
+                        Doctores doctorSeleccionado = (Doctores)cb_doctores.getSelectedItem();
+                        ArrayList<Procedimientos> procedimientosSeleccionados = new ArrayList();
+                        for (int i = 0; i < modelo.getSize(); i++) {
+                            procedimientosSeleccionados.add((Procedimientos)modelo.getElementAt(i));
+                        }
+                        Citas cita = new Citas(doctorSeleccionado, pacienteSeleccionado, fechaStr, hora, procedimientosSeleccionados, id);
+                        if(citasAdmin.guardarCita(cita)){
+                            JOptionPane.showMessageDialog(this, "Cita registrada exitosamente");
+                            deshabilitarCitas();
+                            limpiarCita();
+                        }else{
+                            JOptionPane.showMessageDialog(this, "Ha ocurrido un error");
+                        }
+                    }else{
+                        JOptionPane.showMessageDialog(this, "Seleccione al menos un procedimiento");
+                    }
+                }else{
+                    JOptionPane.showMessageDialog(this, "Seleccione una fecha");
+                }
+            }else{
+                JOptionPane.showMessageDialog(this, "Seleccione un doctor");
+            }
+        }else{
+            JOptionPane.showMessageDialog(this, "Seleccione un paciente");
+        }
+    }//GEN-LAST:event_btn_guardarActionPerformed
+
+    private void jt_pacientesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_pacientesMouseClicked
+        DefaultTableModel modelo = (DefaultTableModel)jt_pacientes.getModel();
+        if (evt.getClickCount() == 1) {
+            int filaSeleccionada = jt_pacientes.getSelectedRow();
+            int id = (int)modelo.getValueAt(filaSeleccionada, 0);
+            Pacientes paciente = pacientesAdmin.obtenerPaciente(id);
+            if(paciente != null){
+                tb_pacienteAdmin.setText(paciente.getPaciente());
+                tb_correoAdmin.setText(paciente.getCorreo());
+                tb_celularAdmin.setText(paciente.getTelefono());
+                lbl_idPaciente.setText(Integer.toString(id));
+            }
+            habilitarPaciente();
+        }
+    }//GEN-LAST:event_jt_pacientesMouseClicked
+
+    private void btn_guardarPacienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_guardarPacienteActionPerformed
+        int id = Integer.parseInt(lbl_idPaciente.getText());
+        String nombre = tb_pacienteAdmin.getText();
+        String correo = tb_correoAdmin.getText();
+        String celular = tb_celularAdmin.getText();
+        if(!nombre.isEmpty() && !celular.isEmpty()){
+            if(correo.isEmpty()) correo = "";
+            Pacientes paciente = new Pacientes(nombre, correo, celular, id);
+            if(pacientesAdmin.guardarPaciente(paciente)){
+                JOptionPane.showMessageDialog(this, "Paciente guardado exitosamente");    
+                tb_pacienteAdmin.setText("");
+                tb_correoAdmin.setText("");
+                tb_celularAdmin.setText("");
+                deshabilitarPaciente();
+            }else{
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error");    
+            }
+            cargarTablaPacientes();
+        }else{
+            JOptionPane.showMessageDialog(this, "Llene la información necesaria");
+        }
+    }//GEN-LAST:event_btn_guardarPacienteActionPerformed
+
+    private void btn_eliminarPacienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_eliminarPacienteActionPerformed
+        int respuesta = JOptionPane.showConfirmDialog(null, "¿Estás seguro que quieres eliminar?", "Confirmación", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) {
+            DefaultTableModel modelo = (DefaultTableModel)jt_pacientes.getModel();
+            int filaSeleccionada = jt_pacientes.getSelectedRow();
+            int id = (int)modelo.getValueAt(filaSeleccionada, 0);
+            if(pacientesAdmin.borrarPaciente(id)){
+                JOptionPane.showMessageDialog(this, "Paciente borrado exitosamente");
+                tb_pacienteAdmin.setText("");
+                tb_correoAdmin.setText("");
+                tb_celularAdmin.setText("");
+                deshabilitarPaciente();
+            }else{
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error");
+            }
+            cargarTablaPacientes();
+        } else {
+        }
+    }//GEN-LAST:event_btn_eliminarPacienteActionPerformed
+
+    private void cb_pacientesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_pacientesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cb_pacientesActionPerformed
+
+    private void cb_pacientesItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cb_pacientesItemStateChanged
+        if(cb_pacientes.getSelectedIndex() != -1){
+            Pacientes paciente = (Pacientes)cb_pacientes.getSelectedItem();
+            tb_correo.setText(paciente.getCorreo());
+            tb_celular.setText(paciente.getTelefono());
+        }
+    }//GEN-LAST:event_cb_pacientesItemStateChanged
+
+    private void cb_tipoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cb_tipoUsuarioActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cb_tipoUsuarioActionPerformed
+
+    private void btn_nuevoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nuevoUsuarioActionPerformed
+        habilitarUsuario();
+        tb_nombre.setText("");
+        cb_tipoUsuario.setSelectedIndex(0);
+        tb_contrasena.setText("");
+        tb_usuario.setText("");
+        lbl_id.setText("-1");
+    }//GEN-LAST:event_btn_nuevoUsuarioActionPerformed
+
+    private void btn_nuevoPacienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nuevoPacienteActionPerformed
+        habilitarPaciente();
+        tb_pacienteAdmin.setText("");
+        tb_celularAdmin.setText("");
+        tb_correoAdmin.setText("");
+        lbl_idPaciente.setText("-1");
+    }//GEN-LAST:event_btn_nuevoPacienteActionPerformed
+
+    private void btn_nuevaCitaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nuevaCitaActionPerformed
+        habilitarCitas();
+        limpiarCita();
+    }//GEN-LAST:event_btn_nuevaCitaActionPerformed
+
+    private void limpiarCita(){
+        jd_fecha.setDate(null);
+        cb_hora.setSelectedIndex(0);
+        jl_procedimientoElegido.removeAll();
+        cargarListaProcedimientos();
+        lbl_idCita.setText("-1");
+        DefaultComboBoxModel modelo = (DefaultComboBoxModel)cb_pacientes.getModel();
+        if(modelo.getSize() > 0)
+            cb_pacientes.setSelectedIndex(0);
+        DefaultComboBoxModel modeloDr = (DefaultComboBoxModel)cb_doctores.getModel();
+        if(modeloDr.getSize() > 0)
+            cb_doctores.setSelectedIndex(0);
+    }
+    
+    private void btn_eliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_eliminarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btn_eliminarActionPerformed
+
+    private void habilitarUsuario(){
+        tb_nombre.setEnabled(true);
+        cb_tipoUsuario.setEnabled(true);
+        tb_contrasena.setEnabled(true);
+        tb_usuario.setEnabled(true);
+    }
+    
+    private void deshabilitarUsuario(){
+        tb_nombre.setEnabled(false);
+        cb_tipoUsuario.setEnabled(false);
+        tb_contrasena.setEnabled(false);
+        tb_usuario.setEnabled(false);
+    }
+    
+    private void habilitarPaciente(){
+        tb_pacienteAdmin.setEnabled(true);
+        tb_correoAdmin.setEnabled(true);
+        tb_celularAdmin.setEnabled(true);
+    }
+    
+    private void deshabilitarPaciente(){
+        tb_pacienteAdmin.setEnabled(false);
+        tb_correoAdmin.setEnabled(false);
+        tb_celularAdmin.setEnabled(false);
+    }
+    
+    private void habilitarCitas(){
+        cb_pacientes.setEnabled(true);
+        cb_doctores.setEnabled(true);
+        jd_fecha.setEnabled(true);
+        cb_hora.setEnabled(true);
+        jl_procedimientoExistente.setEnabled(true);
+        jButton3.setEnabled(true);
+        jButton4.setEnabled(true);
+        jl_procedimientoElegido.setEnabled(true);
+        btn_agregarProcedimiento.setEnabled(true);
+        btn_quitarProcedimiento.setEnabled(true);
+    }
+    
+    private void deshabilitarCitas(){
+        cb_pacientes.setEnabled(false);
+        cb_doctores.setEnabled(false);
+        jd_fecha.setEnabled(false);
+        cb_hora.setEnabled(false);
+        jl_procedimientoExistente.setEnabled(false);
+        jButton3.setEnabled(false);
+        jButton4.setEnabled(false);
+        jl_procedimientoElegido.setEnabled(false);
+        btn_agregarProcedimiento.setEnabled(false);
+        btn_quitarProcedimiento.setEnabled(false);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -487,12 +1029,19 @@ public class Administrador extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_agregarProcedimiento;
+    private javax.swing.JButton btn_eliminar;
+    private javax.swing.JButton btn_eliminarPaciente;
     private javax.swing.JButton btn_eliminarUsuario;
     private javax.swing.JButton btn_guardar;
+    private javax.swing.JButton btn_guardarPaciente;
     private javax.swing.JButton btn_guardarUsuario;
+    private javax.swing.JButton btn_nuevaCita;
+    private javax.swing.JButton btn_nuevoPaciente;
+    private javax.swing.JButton btn_nuevoUsuario;
     private javax.swing.JButton btn_quitarProcedimiento;
     private javax.swing.JComboBox<String> cb_doctores;
     private javax.swing.JComboBox<String> cb_hora;
+    private javax.swing.JComboBox<String> cb_pacientes;
     private javax.swing.JComboBox<String> cb_tipoUsuario;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -501,6 +1050,9 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -511,22 +1063,30 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTabbedPane jTabbedPane1;
     private com.toedter.calendar.JDateChooser jd_fecha;
     private javax.swing.JList<String> jl_procedimientoElegido;
     private javax.swing.JList<String> jl_procedimientoExistente;
+    private javax.swing.JTable jt_citas;
     private javax.swing.JTable jt_pacientes;
     private javax.swing.JTable jt_usuarios;
     private javax.swing.JLabel lbl_id;
+    private javax.swing.JLabel lbl_idCita;
+    private javax.swing.JLabel lbl_idPaciente;
     private javax.swing.JTextField tb_celular;
+    private javax.swing.JTextField tb_celularAdmin;
     private javax.swing.JTextField tb_contrasena;
     private javax.swing.JTextField tb_correo;
+    private javax.swing.JTextField tb_correoAdmin;
     private javax.swing.JTextField tb_nombre;
-    private javax.swing.JTextField tb_paciente;
+    private javax.swing.JTextField tb_pacienteAdmin;
     private javax.swing.JTextField tb_usuario;
     // End of variables declaration//GEN-END:variables
 }

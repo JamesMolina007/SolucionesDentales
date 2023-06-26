@@ -5,56 +5,63 @@
 package Modelos;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  *
  * @author James Josue Molina
  */
 public class Citas {
-    private String doctor;
-    private String paciente;
-    private Date fecha;
+    private int id = -1;
+    private Doctores doctor;
+    private Pacientes paciente;
+    private String fecha;
+    private String hora;
     private ArrayList<Procedimientos> procedimiento;
 
     public Citas() {
     }
 
-    public Citas(String doctor, String paciente, Date fecha, ArrayList<Procedimientos> procedimiento) {
+    public Citas(Doctores doctor, Pacientes paciente, String fecha, String hora, ArrayList<Procedimientos> procedimiento, int id) {
         this.doctor = doctor;
         this.paciente = paciente;
         this.fecha = fecha;
+        this.hora = hora;
         this.procedimiento = procedimiento;
+        this.id = id;
     }
     
-    public Citas(String doctor, String paciente, Date fecha) {
-        this.doctor = doctor;
-        this.paciente = paciente;
-        this.fecha = fecha;
-    }
+    
 
-    public String getDoctor() {
+    public Doctores getDoctor() {
         return doctor;
     }
 
-    public void setDoctor(String doctor) {
+    public void setDoctor(Doctores doctor) {
         this.doctor = doctor;
     }
 
-    public String getPaciente() {
+    public Pacientes getPaciente() {
         return paciente;
     }
 
-    public void setPaciente(String paciente) {
+    public void setPaciente(Pacientes paciente) {
         this.paciente = paciente;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
+    }
+
+    public String getHora() {
+        return hora;
+    }
+
+    public void setHora(String hora) {
+        this.hora = hora;
     }
 
     public ArrayList<Procedimientos> getProcedimiento() {
@@ -64,6 +71,15 @@ public class Citas {
     public void setProcedimiento(ArrayList<Procedimientos> procedimiento) {
         this.procedimiento = procedimiento;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     
     
     

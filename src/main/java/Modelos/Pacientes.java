@@ -9,6 +9,7 @@ package Modelos;
  * @author James Josue Molina
  */
 public class Pacientes {
+    private int id = -1;
     private String paciente;
     private String correo;
     private String telefono;
@@ -22,6 +23,13 @@ public class Pacientes {
         this.paciente = paciente;
         this.correo = correo;
         this.telefono = telefono;
+    }
+    
+    public Pacientes(String paciente, String correo, String telefono, int id) {
+        this.paciente = paciente;
+        this.correo = correo;
+        this.telefono = telefono;
+        this.id = id;
     }
 
     public String getPaciente() {
@@ -47,7 +55,18 @@ public class Pacientes {
     public void setTelefono(String telefono) {
         this.telefono = telefono;
     }
-    
-    
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return paciente;
+    }
     
 }

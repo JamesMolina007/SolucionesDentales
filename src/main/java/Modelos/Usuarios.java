@@ -63,6 +63,11 @@ public class Usuarios implements Serializable{
     public int getId(){
         return id;
     }
+
+    @Override
+    public String toString() {
+        return nombre;
+    }
     
     
     
