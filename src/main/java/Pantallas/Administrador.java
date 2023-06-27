@@ -14,17 +14,21 @@ import Modelos.Doctores;
 import Modelos.Pacientes;
 import Modelos.Procedimientos;
 import Modelos.Usuarios;
+import java.awt.Color;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -125,6 +129,50 @@ public class Administrador extends javax.swing.JFrame {
             Object[] filaPrincipal = {cita, cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr, cita.getEstado()};
             modeloPrincipal.addRow(filaPrincipal);
         }
+        
+            DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                java.awt.Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                String estado = (String) table.getValueAt(row, 5); // Obtener el valor de la columna "Estado" (columna 5)
+                String fechaCitaStr = (String) table.getValueAt(row, 3); // Obtener el valor de la columna "Fecha" (columna 3)
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                java.util.Date fechaCita;
+                try {
+                    fechaCita = dateFormat.parse(fechaCitaStr);
+                } catch (ParseException e) {
+                    fechaCita = null;
+                }
+                java.util.Date fechaActual = new java.util.Date();
+
+                long diffInMillis = fechaCita.getTime() - fechaActual.getTime();
+                long diffInDays = TimeUnit.MILLISECONDS.toDays(diffInMillis);
+
+                if (estado.equals("Cancelado")) {
+                    cellComponent.setBackground(Color.DARK_GRAY);
+                    cellComponent.setForeground(Color.WHITE);
+                } else if (diffInDays >= 3) {
+                    cellComponent.setBackground(Color.LIGHT_GRAY);
+                }else if (diffInDays > 1) {
+                    cellComponent.setBackground(Color.YELLOW);
+                } else if (diffInDays <= 1 && diffInDays >= 0) {
+                    cellComponent.setBackground(Color.ORANGE);
+                } else if (diffInDays < 0) {
+                    cellComponent.setBackground(Color.RED);
+                } else {
+                    cellComponent.setBackground(Color.GREEN);
+                }
+
+                return cellComponent;
+            }
+        };
+
+        for (int i = 0; i < modeloPrincipal.getRowCount(); i++) {
+            for (int j = 0; j < modeloPrincipal.getColumnCount(); j++) {
+                jt_citasPrincipal.getColumnModel().getColumn(j).setCellRenderer(renderer);
+            }
+        }
     }
     
     /**
@@ -142,9 +190,11 @@ public class Administrador extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
         jt_citasPrincipal = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
+        btn_enviarRecordatorio = new javax.swing.JButton();
+        btn_realizado = new javax.swing.JButton();
+        btn_cancelado = new javax.swing.JButton();
+        btn_reporte = new javax.swing.JButton();
+        cb_realizado = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -224,11 +274,15 @@ public class Administrador extends javax.swing.JFrame {
         });
         jScrollPane6.setViewportView(jt_citasPrincipal);
 
-        jButton1.setText("Enviar Recordatorio");
+        btn_enviarRecordatorio.setText("Enviar Recordatorio");
 
-        jButton2.setText("Realizado");
+        btn_realizado.setText("Realizado");
 
-        jButton5.setText("Cancelado");
+        btn_cancelado.setText("Cancelado");
+
+        btn_reporte.setText("Reporte");
+
+        cb_realizado.setText("Realizados");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -238,13 +292,17 @@ public class Administrador extends javax.swing.JFrame {
                 .addGap(16, 16, 16)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(jButton2)
+                        .addComponent(btn_realizado)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton5)
+                        .addComponent(btn_cancelado)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 756, Short.MAX_VALUE))
+                        .addComponent(btn_enviarRecordatorio)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_reporte)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cb_realizado)
+                        .addGap(0, 284, Short.MAX_VALUE))
+                    .addComponent(jScrollPane6))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -252,12 +310,14 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton5))
+                    .addComponent(btn_enviarRecordatorio)
+                    .addComponent(btn_realizado)
+                    .addComponent(btn_cancelado)
+                    .addComponent(btn_reporte)
+                    .addComponent(cb_realizado))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addContainerGap(92, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Citas", jPanel4);
@@ -581,7 +641,7 @@ public class Administrador extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(122, Short.MAX_VALUE))
+                .addContainerGap(143, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Pacientes", jPanel3);
@@ -693,7 +753,7 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(53, 53, 53)
                         .addComponent(lbl_id)))
-                .addContainerGap(87, Short.MAX_VALUE))
+                .addContainerGap(108, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Usuarios", jPanel2);
@@ -729,8 +789,8 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(jLabel1))
                     .addComponent(btn_salir))
                 .addGap(18, 18, 18)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 533, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jTabbedPane1)
+                .addContainerGap())
         );
 
         pack();
@@ -1193,9 +1253,11 @@ public class Administrador extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_agregarProcedimiento;
+    private javax.swing.JButton btn_cancelado;
     private javax.swing.JButton btn_eliminar;
     private javax.swing.JButton btn_eliminarPaciente;
     private javax.swing.JButton btn_eliminarUsuario;
+    private javax.swing.JButton btn_enviarRecordatorio;
     private javax.swing.JButton btn_guardar;
     private javax.swing.JButton btn_guardarPaciente;
     private javax.swing.JButton btn_guardarUsuario;
@@ -1203,16 +1265,16 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JButton btn_nuevoPaciente;
     private javax.swing.JButton btn_nuevoUsuario;
     private javax.swing.JButton btn_quitarProcedimiento;
+    private javax.swing.JButton btn_realizado;
+    private javax.swing.JButton btn_reporte;
     private javax.swing.JButton btn_salir;
     private javax.swing.JComboBox<String> cb_doctores;
     private javax.swing.JComboBox<String> cb_hora;
     private javax.swing.JComboBox<String> cb_pacientes;
+    private javax.swing.JCheckBox cb_realizado;
     private javax.swing.JComboBox<String> cb_tipoUsuario;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;

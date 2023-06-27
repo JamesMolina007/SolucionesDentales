@@ -54,8 +54,8 @@
                   <Component id="btn_salir" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="jTabbedPane1" min="-2" pref="533" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
+              <Component id="jTabbedPane1" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -89,14 +89,18 @@
                       <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
-                              <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                              <Component id="btn_realizado" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jButton5" min="-2" max="-2" attributes="0"/>
+                              <Component id="btn_cancelado" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jButton1" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <Component id="btn_enviarRecordatorio" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="btn_reporte" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="cb_realizado" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="0" pref="284" max="32767" attributes="0"/>
                           </Group>
-                          <Component id="jScrollPane6" pref="756" max="32767" attributes="0"/>
+                          <Component id="jScrollPane6" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -107,13 +111,15 @@
                   <Group type="102" attributes="0">
                       <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jButton5" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btn_enviarRecordatorio" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btn_realizado" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btn_cancelado" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btn_reporte" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="cb_realizado" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jScrollPane6" min="-2" pref="386" max="-2" attributes="0"/>
-                      <EmptySpace pref="71" max="32767" attributes="0"/>
+                      <EmptySpace pref="92" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -148,19 +154,29 @@
                 </Component>
               </SubComponents>
             </Container>
-            <Component class="javax.swing.JButton" name="jButton1">
+            <Component class="javax.swing.JButton" name="btn_enviarRecordatorio">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Enviar Recordatorio"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton2">
+            <Component class="javax.swing.JButton" name="btn_realizado">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Realizado"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton5">
+            <Component class="javax.swing.JButton" name="btn_cancelado">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Cancelado"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JButton" name="btn_reporte">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Reporte"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="cb_realizado">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Realizados"/>
               </Properties>
             </Component>
           </SubComponents>
@@ -608,7 +624,7 @@
                               <Component id="jScrollPane5" min="-2" pref="374" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace pref="122" max="32767" attributes="0"/>
+                      <EmptySpace pref="143" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -760,7 +776,7 @@
                               <Component id="lbl_id" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace pref="87" max="32767" attributes="0"/>
+                      <EmptySpace pref="108" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
