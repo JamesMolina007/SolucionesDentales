@@ -24,6 +24,7 @@ public class Login extends javax.swing.JFrame {
      */
     private ArrayList<Usuarios> usuarios = new ArrayList();
     private UsuariosAdmin usuariosAdmin = new UsuariosAdmin();
+    
     public Login() {
         this.setVisible(true);
         initComponents();
@@ -31,25 +32,25 @@ public class Login extends javax.swing.JFrame {
         usuarios = usuariosAdmin.obtenerUsuarios();
         usuarios.add(new Administradores("admin","admin", "Administrador"));
         
-//        try {
-//            Usuarios usuarioTemp = null;
-//            ObjectInputStream oos = new ObjectInputStream(new FileInputStream("./log.sj"));        
-//            usuarioTemp = (Usuarios)oos.readObject();
-//            if(usuarioTemp != null){
-//                if(usuarioTemp instanceof Doctores){
-//                    Doctor doctor = new Doctor();
-//                    doctor.setUsuario(usuarioTemp);
-//                    doctor.setVisible(true);
-//                    this.setVisible(false);
-//                }else if(usuarioTemp instanceof Administradores){
-//                    Administrador administrador = new Administrador();
-//                    administrador.setUsuario(usuarioTemp);
-//                    administrador.setVisible(true);
-//                    this.setVisible(false);
-//                }
-//            }
-//       } catch (Exception ex) {
-//       }
+        try {
+            Usuarios usuarioTemp = null;
+            ObjectInputStream oos = new ObjectInputStream(new FileInputStream("./log.sj"));        
+            usuarioTemp = (Usuarios)oos.readObject();
+            if(usuarioTemp != null){
+                if(usuarioTemp instanceof Doctores){
+                    Doctor doctor = new Doctor();
+                    doctor.setUsuario(usuarioTemp);
+                    doctor.setVisible(true);
+                    this.setVisible(false);
+                }else if(usuarioTemp instanceof Administradores){
+                    Administrador administrador = new Administrador();
+                    administrador.setUsuario(usuarioTemp);
+                    administrador.setVisible(true);
+                    this.setVisible(false);
+                }
+            }
+       } catch (Exception ex) {
+       }
                     
     }
 

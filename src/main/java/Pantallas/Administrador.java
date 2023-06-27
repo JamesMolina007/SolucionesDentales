@@ -14,9 +14,14 @@ import Modelos.Doctores;
 import Modelos.Pacientes;
 import Modelos.Procedimientos;
 import Modelos.Usuarios;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
@@ -106,6 +111,7 @@ public class Administrador extends javax.swing.JFrame {
     private void cargarTablaCitas(){
         citas = citasAdmin.obtenerCitas();
         DefaultTableModel modelo = (DefaultTableModel)jt_citas.getModel();
+        DefaultTableModel modeloPrincipal = (DefaultTableModel)jt_citasPrincipal.getModel();
         int cantidadFilas = modelo.getRowCount();
         for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
         for (Citas cita : citas) {
@@ -113,8 +119,11 @@ public class Administrador extends javax.swing.JFrame {
             for (Procedimientos p : cita.getProcedimiento()) {
                 procedimientosStr += p.getNombre() + ", ";
             }
-            Object[] fila = {cita.getId(), cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr};
+            Object[] fila = {cita, cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr};
             modelo.addRow(fila);
+            
+            Object[] filaPrincipal = {cita, cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr, cita.getEstado()};
+            modeloPrincipal.addRow(filaPrincipal);
         }
     }
     
@@ -131,6 +140,11 @@ public class Administrador extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel4 = new javax.swing.JPanel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jt_citasPrincipal = new javax.swing.JTable();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -187,21 +201,63 @@ public class Administrador extends javax.swing.JFrame {
         jt_usuarios = new javax.swing.JTable();
         lbl_id = new javax.swing.JLabel();
         btn_nuevoUsuario = new javax.swing.JButton();
+        btn_salir = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("Interfaz de Admnistración de Citas y Usuarios");
 
+        jt_citasPrincipal.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ID", "Paciente", "Doctor", "Fecha", "Procedimientos", "Estado"
+            }
+        ));
+        jt_citas.setDefaultEditor(Object.class, null);
+        jt_citasPrincipal.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jt_citasPrincipalMouseClicked(evt);
+            }
+        });
+        jScrollPane6.setViewportView(jt_citasPrincipal);
+
+        jButton1.setText("Enviar Recordatorio");
+
+        jButton2.setText("Realizado");
+
+        jButton5.setText("Cancelado");
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 778, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 756, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 524, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2)
+                    .addComponent(jButton5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(71, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Citas", jPanel4);
@@ -261,6 +317,11 @@ public class Administrador extends javax.swing.JFrame {
             }
         ));
         jt_citas.setDefaultEditor(Object.class, null);
+        jt_citas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jt_citasMouseClicked(evt);
+            }
+        });
         jScrollPane4.setViewportView(jt_citas);
 
         jLabel9.setText("Correo:");
@@ -322,35 +383,34 @@ public class Administrador extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel6)
-                        .addComponent(jLabel9)
-                        .addComponent(jLabel10)
-                        .addComponent(jLabel7)
-                        .addComponent(jLabel8)
-                        .addComponent(jLabel11)
-                        .addComponent(jLabel12)
-                        .addComponent(cb_hora, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jButton3)
-                                        .addComponent(jButton4)))
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(btn_agregarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(btn_quitarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel9)
+                            .addComponent(jLabel10)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel11)
+                            .addComponent(jLabel12)
+                            .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton3)
+                                    .addComponent(jButton4))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(btn_agregarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btn_quitarProcedimiento, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -398,25 +458,30 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jButton3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton4))
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
-                                .addComponent(jScrollPane3)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btn_agregarProcedimiento)
-                            .addComponent(btn_quitarProcedimiento)))
-                    .addComponent(jScrollPane4))
-                .addContainerGap())
+                                .addComponent(jButton4)
+                                .addGap(111, 111, 111))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(btn_agregarProcedimiento)
+                                    .addComponent(btn_quitarProcedimiento))
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
 
         jTabbedPane1.addTab("Admin. Citas", jPanel1);
@@ -493,9 +558,6 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(16, 16, 16)
                         .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -515,8 +577,11 @@ public class Administrador extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(lbl_idPaciente)))
-                .addContainerGap(28, Short.MAX_VALUE))
+                        .addComponent(lbl_idPaciente))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(122, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Pacientes", jPanel3);
@@ -603,7 +668,7 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -628,10 +693,17 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(53, 53, 53)
                         .addComponent(lbl_id)))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(87, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Usuarios", jPanel2);
+
+        btn_salir.setText("Salir");
+        btn_salir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_salirActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -642,7 +714,8 @@ public class Administrador extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(125, 125, 125))
+                        .addGap(50, 50, 50)
+                        .addComponent(btn_salir))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap())))
@@ -650,11 +723,14 @@ public class Administrador extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTabbedPane1)
-                .addGap(12, 12, 12))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addComponent(jLabel1))
+                    .addComponent(btn_salir))
+                .addGap(18, 18, 18)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 533, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -734,7 +810,7 @@ public class Administrador extends javax.swing.JFrame {
         int index = jl_procedimientoElegido.getSelectedIndex();
         if(index != -1){
             DefaultListModel modelo = (DefaultListModel)jl_procedimientoElegido.getModel();
-            Procedimientos procedimiento = (Procedimientos)modelo.getElementAt(index);
+            modelo.removeElementAt(jl_procedimientoElegido.getSelectedIndex());
         }
 
     }//GEN-LAST:event_jButton4ActionPerformed
@@ -779,7 +855,15 @@ public class Administrador extends javax.swing.JFrame {
             Procedimientos procedimiento = (Procedimientos)modelo.getElementAt(index);
             
             DefaultListModel modeloDestino = (DefaultListModel)jl_procedimientoElegido.getModel();
-            modeloDestino.addElement(procedimiento);
+            boolean existe = false;
+            for (int i = 0; i < modeloDestino.getSize(); i++) {
+                if(procedimiento.getId() == ((Procedimientos)modeloDestino.getElementAt(i)).getId())
+                    existe = true;
+            }
+            if(!existe)
+                modeloDestino.addElement(procedimiento);
+            else
+                JOptionPane.showMessageDialog(this, "El procedimiento ya ha sido seleccionado");
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -793,7 +877,7 @@ public class Administrador extends javax.swing.JFrame {
                 String hora = (String)cb_hora.getSelectedItem();
                 Date fecha = jd_fecha.getDate();
                 if(fecha != null){
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                     String fechaStr = dateFormat.format(fecha);
                     DefaultListModel modelo = (DefaultListModel)jl_procedimientoElegido.getModel();
                     if(modelo.getSize() > 0){
@@ -803,9 +887,10 @@ public class Administrador extends javax.swing.JFrame {
                         for (int i = 0; i < modelo.getSize(); i++) {
                             procedimientosSeleccionados.add((Procedimientos)modelo.getElementAt(i));
                         }
-                        Citas cita = new Citas(doctorSeleccionado, pacienteSeleccionado, fechaStr, hora, procedimientosSeleccionados, id);
+                        Citas cita = new Citas(doctorSeleccionado, pacienteSeleccionado, fechaStr, hora, procedimientosSeleccionados, id, "");
                         if(citasAdmin.guardarCita(cita)){
-                            JOptionPane.showMessageDialog(this, "Cita registrada exitosamente");
+                            JOptionPane.showMessageDialog(this, "Cita guardada exitosamente");
+                            cargarTablaCitas();
                             deshabilitarCitas();
                             limpiarCita();
                         }else{
@@ -928,6 +1013,8 @@ public class Administrador extends javax.swing.JFrame {
         jl_procedimientoElegido.removeAll();
         cargarListaProcedimientos();
         lbl_idCita.setText("-1");
+        DefaultListModel modeloProcedimientos = (DefaultListModel)jl_procedimientoElegido.getModel();
+        modeloProcedimientos.removeAllElements();
         DefaultComboBoxModel modelo = (DefaultComboBoxModel)cb_pacientes.getModel();
         if(modelo.getSize() > 0)
             cb_pacientes.setSelectedIndex(0);
@@ -937,8 +1024,85 @@ public class Administrador extends javax.swing.JFrame {
     }
     
     private void btn_eliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_eliminarActionPerformed
-        // TODO add your handling code here:
+        int respuesta = JOptionPane.showConfirmDialog(null, "¿Estás seguro que quieres eliminar?", "Confirmación", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) {
+            DefaultTableModel modelo = (DefaultTableModel)jt_citas.getModel();
+            int row = jt_citas.getSelectedRow();
+            Citas cita = (Citas)modelo.getValueAt(row,0);
+            if(citasAdmin.borrarCita(cita.getId())){
+                JOptionPane.showMessageDialog(this, "Borrado exitosamente");
+                cargarTablaCitas();
+                deshabilitarCitas();
+                limpiarCita();
+            }else{
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error");
+            }
+        }
     }//GEN-LAST:event_btn_eliminarActionPerformed
+
+    private void jt_citasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_citasMouseClicked
+        DefaultTableModel modelo = (DefaultTableModel)jt_citas.getModel();
+        habilitarCitas();
+        if (evt.getClickCount() == 1) {
+            
+            int row = jt_citas.getSelectedRow();
+            Citas cita = (Citas)modelo.getValueAt(row,0);
+            Pacientes paciente = (Pacientes)modelo.getValueAt(row, 1);
+            Doctores doctor = (Doctores)modelo.getValueAt(row,2);
+            tb_correo.setText(paciente.getCorreo());
+            tb_celular.setText(paciente.getTelefono());
+            
+            DefaultComboBoxModel modeloPacientes = (DefaultComboBoxModel)cb_pacientes.getModel();
+            for (int i = 0; i < modeloPacientes.getSize(); i++) {
+                if(((Pacientes)modeloPacientes.getElementAt(i)).getId() == paciente.getId()){
+                    cb_pacientes.setSelectedIndex(i);
+                    break;
+                }
+            }
+            
+            DefaultComboBoxModel modeloDoctores = (DefaultComboBoxModel)cb_doctores.getModel();
+            for (int i = 0; i < modeloDoctores.getSize(); i++) {
+                if(((Doctores)modeloDoctores.getElementAt(i)).getId() == doctor.getId()){
+                    cb_doctores.setSelectedIndex(i);
+                    break;
+                }
+            }
+            
+            lbl_idCita.setText(Integer.toString(cita.getId()));
+            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+            Date fecha = null;
+            try {
+                fecha = df.parse(cita.getFecha());
+            } catch (ParseException ex) {
+                Logger.getLogger(Administrador.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            jd_fecha.setDate(fecha);
+            
+            cb_hora.setSelectedItem(cita.getHora());
+            
+            
+            DefaultListModel modeloProcedimientos = (DefaultListModel)jl_procedimientoElegido.getModel();
+            modeloProcedimientos.removeAllElements();
+            for (Procedimientos p : cita.getProcedimiento()) {
+                modeloProcedimientos.addElement(p);
+            }
+        }
+    }//GEN-LAST:event_jt_citasMouseClicked
+
+    private void btn_salirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_salirActionPerformed
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./log.sj"));
+            oos.writeObject(new Usuarios());
+            Login l = new Login();
+            l.setVisible(true);
+            this.setVisible(false);
+        } catch (Exception ex) {
+        }
+    }//GEN-LAST:event_btn_salirActionPerformed
+
+    private void jt_citasPrincipalMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jt_citasPrincipalMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jt_citasPrincipalMouseClicked
 
     private void habilitarUsuario(){
         tb_nombre.setEnabled(true);
@@ -1039,12 +1203,16 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JButton btn_nuevoPaciente;
     private javax.swing.JButton btn_nuevoUsuario;
     private javax.swing.JButton btn_quitarProcedimiento;
+    private javax.swing.JButton btn_salir;
     private javax.swing.JComboBox<String> cb_doctores;
     private javax.swing.JComboBox<String> cb_hora;
     private javax.swing.JComboBox<String> cb_pacientes;
     private javax.swing.JComboBox<String> cb_tipoUsuario;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1070,11 +1238,13 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTabbedPane jTabbedPane1;
     private com.toedter.calendar.JDateChooser jd_fecha;
     private javax.swing.JList<String> jl_procedimientoElegido;
     private javax.swing.JList<String> jl_procedimientoExistente;
     private javax.swing.JTable jt_citas;
+    private javax.swing.JTable jt_citasPrincipal;
     private javax.swing.JTable jt_pacientes;
     private javax.swing.JTable jt_usuarios;
     private javax.swing.JLabel lbl_id;

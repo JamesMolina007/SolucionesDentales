@@ -16,17 +16,19 @@ public class Citas {
     private Pacientes paciente;
     private String fecha;
     private String hora;
+    private String estado;
     private ArrayList<Procedimientos> procedimiento;
 
     public Citas() {
     }
 
-    public Citas(Doctores doctor, Pacientes paciente, String fecha, String hora, ArrayList<Procedimientos> procedimiento, int id) {
+    public Citas(Doctores doctor, Pacientes paciente, String fecha, String hora, ArrayList<Procedimientos> procedimiento, int id, String estado) {
         this.doctor = doctor;
         this.paciente = paciente;
         this.fecha = fecha;
         this.hora = hora;
         this.procedimiento = procedimiento;
+        this.estado = estado;
         this.id = id;
     }
     
@@ -78,6 +80,19 @@ public class Citas {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+    
+    @Override
+    public String toString() {
+        return Integer.toString(id);
     }
 
     

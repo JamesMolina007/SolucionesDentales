@@ -39,6 +39,7 @@ public class CitasAdmin {
                 int idDoctorCita = rs.getInt("IDDOCTOR");
                 String fechaCita = rs.getString("FECHA");
                 String horaCita = rs.getString("HORA");
+                String estadoCita = rs.getString("ESTADO");
                 query = "SELECT * FROM PACIENTES WHERE ID = " + idPacienteCita;
                 try{
                     dba.query.execute(query);
@@ -85,7 +86,7 @@ public class CitasAdmin {
                     ex.printStackTrace();
                 }
                 
-                citas.add(new Citas(doctor, paciente, fechaCita, horaCita, procedimientos, idCitaCita));
+                citas.add(new Citas(doctor, paciente, fechaCita, horaCita, procedimientos, idCitaCita, estadoCita));
             }
         }catch(Exception ex){
             ex.printStackTrace();
@@ -108,6 +109,7 @@ public class CitasAdmin {
                 String idDoctorCita = rs.getString("IDDOCTOR");
                 String fechaCita = rs.getString("FECHA");
                 String horaCita = rs.getString("HORA");
+                String estadoCita = rs.getString("ESTADO");
                 
                 query = "SELECT * FROM PACIENTES WHERE ID = " + idPacienteCita;
                 dba.query.execute(query);
@@ -137,7 +139,7 @@ public class CitasAdmin {
                     procedimientos.add(new Procedimientos(nombre, idProcedimiento));
                 }
                 
-                return new Citas(doctor, paciente, fechaCita, horaCita, procedimientos, idCitaCita);
+                return new Citas(doctor, paciente, fechaCita, horaCita, procedimientos, idCitaCita, estadoCita);
             }
         }catch(Exception ex){
             ex.printStackTrace();
@@ -152,7 +154,8 @@ public class CitasAdmin {
             if(cita.getId() == -1)
                 query = "INSERT INTO CITAS (IDPACIENTE, IDDOCTOR, FECHA, HORA) VALUES (" + cita.getPaciente().getId() + "," + cita.getDoctor().getId() + ",'" + cita.getFecha() + "','" + cita.getHora() + "')";
             else
-                query = "UPDATE CITAS SET IDPACIENTE=" + cita.getPaciente().getId() + ", IDDOCTOR=" + cita.getDoctor().getId() + ", FECHA=" + cita.getFecha() + ", HORA=" + cita.getHora() + " WHERE ID=" + cita.getId();
+                query = "UPDATE CITAS SET IDPACIENTE=" + cita.getPaciente().getId() + ", IDDOCTOR=" + cita.getDoctor().getId() + ", FECHA='" + cita.getFecha() + "', HORA='" + cita.getHora() + "' WHERE ID=" + cita.getId();
+            
             dba.query.execute(query);
             
             if(cita.getId() == -1){
