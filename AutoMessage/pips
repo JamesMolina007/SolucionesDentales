@@ -1,0 +1,3 @@
+pip install pyinstaller
+pyinstaller --onefile init.py
+C:\Users\James Josué Molina\AppData\Local\Programs\Python\Python310\python.exe -m pip uninstall typing

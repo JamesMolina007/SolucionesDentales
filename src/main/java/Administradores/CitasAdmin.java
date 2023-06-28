@@ -23,10 +23,10 @@ public class CitasAdmin {
         dba.conectar();
     }
     
-    public ArrayList<Citas> obtenerCitas(){
+    public ArrayList<Citas> obtenerCitas(String filtro){
         ArrayList<Citas> citas = new ArrayList();
         try{
-            String query = "SELECT * FROM CITAS";
+            String query = "SELECT * FROM CITAS " + filtro;
             dba.query.execute(query);
             ResultSet rs = dba.query.getResultSet();
             while(rs.next()){
@@ -154,7 +154,7 @@ public class CitasAdmin {
             if(cita.getId() == -1)
                 query = "INSERT INTO CITAS (IDPACIENTE, IDDOCTOR, FECHA, HORA) VALUES (" + cita.getPaciente().getId() + "," + cita.getDoctor().getId() + ",'" + cita.getFecha() + "','" + cita.getHora() + "')";
             else
-                query = "UPDATE CITAS SET IDPACIENTE=" + cita.getPaciente().getId() + ", IDDOCTOR=" + cita.getDoctor().getId() + ", FECHA='" + cita.getFecha() + "', HORA='" + cita.getHora() + "' WHERE ID=" + cita.getId();
+                query = "UPDATE CITAS SET IDPACIENTE=" + cita.getPaciente().getId() + ", IDDOCTOR=" + cita.getDoctor().getId() + ", FECHA='" + cita.getFecha() + "', HORA='" + cita.getHora() + "', ESTADO='" + cita.getEstado() + "' WHERE ID=" + cita.getId();
             
             dba.query.execute(query);
             

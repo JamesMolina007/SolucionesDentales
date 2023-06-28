@@ -1,1 +1,6 @@
 /target/
+AutoMessage/.wwebjs_auth
+AutoMessage/.wwebjs_cache
+node_modules
+AutoMessage/dist/.wwebjs_auth
+AutoMessage/dist/.wwebjs_cache

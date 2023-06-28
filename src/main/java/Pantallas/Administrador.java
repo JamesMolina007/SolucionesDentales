@@ -15,8 +15,13 @@ import Modelos.Pacientes;
 import Modelos.Procedimientos;
 import Modelos.Usuarios;
 import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import org.json.JSONObject;
 
 /**
  *
@@ -113,9 +119,8 @@ public class Administrador extends javax.swing.JFrame {
     }
     
     private void cargarTablaCitas(){
-        citas = citasAdmin.obtenerCitas();
+        citas = citasAdmin.obtenerCitas("");
         DefaultTableModel modelo = (DefaultTableModel)jt_citas.getModel();
-        DefaultTableModel modeloPrincipal = (DefaultTableModel)jt_citasPrincipal.getModel();
         int cantidadFilas = modelo.getRowCount();
         for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
         for (Citas cita : citas) {
@@ -125,18 +130,31 @@ public class Administrador extends javax.swing.JFrame {
             }
             Object[] fila = {cita, cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr};
             modelo.addRow(fila);
-            
+        }
+        cargarTablaPrincipal("WHERE ESTADO='No Realizado' OR ESTADO = 'Cancelado'");
+    }
+    
+    private void cargarTablaPrincipal(String filtro){
+        citas = citasAdmin.obtenerCitas(filtro);
+        DefaultTableModel modeloPrincipal = (DefaultTableModel)jt_citasPrincipal.getModel();
+        int cantidadFilas = modeloPrincipal.getRowCount();
+        for (int i = 0; i < cantidadFilas; i++) modeloPrincipal.removeRow(0);
+        for (Citas cita : citas) {
+            String procedimientosStr = "";
+            for (Procedimientos p : cita.getProcedimiento()) {
+                procedimientosStr += p.getNombre() + ", ";
+            }
             Object[] filaPrincipal = {cita, cita.getPaciente(), cita.getDoctor(), cita.getFecha() + " " + cita.getHora(), procedimientosStr, cita.getEstado()};
             modeloPrincipal.addRow(filaPrincipal);
         }
         
-            DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+        DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
             @Override
             public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 java.awt.Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                String estado = (String) table.getValueAt(row, 5); // Obtener el valor de la columna "Estado" (columna 5)
-                String fechaCitaStr = (String) table.getValueAt(row, 3); // Obtener el valor de la columna "Fecha" (columna 3)
+                String estado = (String) table.getValueAt(row, 5);
+                String fechaCitaStr = (String) table.getValueAt(row, 3);
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                 java.util.Date fechaCita;
                 try {
@@ -149,19 +167,19 @@ public class Administrador extends javax.swing.JFrame {
                 long diffInMillis = fechaCita.getTime() - fechaActual.getTime();
                 long diffInDays = TimeUnit.MILLISECONDS.toDays(diffInMillis);
 
-                if (estado.equals("Cancelado")) {
+                if(estado.equals("Realizado")){
+                    cellComponent.setBackground(Color.GREEN);
+                }else if (estado.equals("Cancelado")) {
                     cellComponent.setBackground(Color.DARK_GRAY);
                     cellComponent.setForeground(Color.WHITE);
                 } else if (diffInDays >= 3) {
                     cellComponent.setBackground(Color.LIGHT_GRAY);
                 }else if (diffInDays > 1) {
                     cellComponent.setBackground(Color.YELLOW);
-                } else if (diffInDays <= 1 && diffInDays >= 0) {
+                } else if (diffInDays <= 1 && diffInDays > 0) {
                     cellComponent.setBackground(Color.ORANGE);
-                } else if (diffInDays < 0) {
+                } else if (diffInDays <= 0) {
                     cellComponent.setBackground(Color.RED);
-                } else {
-                    cellComponent.setBackground(Color.GREEN);
                 }
 
                 return cellComponent;
@@ -173,8 +191,8 @@ public class Administrador extends javax.swing.JFrame {
                 jt_citasPrincipal.getColumnModel().getColumn(j).setCellRenderer(renderer);
             }
         }
+        
     }
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -195,6 +213,7 @@ public class Administrador extends javax.swing.JFrame {
         btn_cancelado = new javax.swing.JButton();
         btn_reporte = new javax.swing.JButton();
         cb_realizado = new javax.swing.JCheckBox();
+        btn_realizado1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -265,7 +284,15 @@ public class Administrador extends javax.swing.JFrame {
             new String [] {
                 "ID", "Paciente", "Doctor", "Fecha", "Procedimientos", "Estado"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jt_citas.setDefaultEditor(Object.class, null);
         jt_citasPrincipal.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -275,14 +302,41 @@ public class Administrador extends javax.swing.JFrame {
         jScrollPane6.setViewportView(jt_citasPrincipal);
 
         btn_enviarRecordatorio.setText("Enviar Recordatorio");
+        btn_enviarRecordatorio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_enviarRecordatorioActionPerformed(evt);
+            }
+        });
 
         btn_realizado.setText("Realizado");
+        btn_realizado.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_realizadoActionPerformed(evt);
+            }
+        });
 
         btn_cancelado.setText("Cancelado");
+        btn_cancelado.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_canceladoActionPerformed(evt);
+            }
+        });
 
         btn_reporte.setText("Reporte");
 
         cb_realizado.setText("Realizados");
+        cb_realizado.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cb_realizadoItemStateChanged(evt);
+            }
+        });
+
+        btn_realizado1.setText("No Realizado");
+        btn_realizado1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_realizado1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -293,6 +347,8 @@ public class Administrador extends javax.swing.JFrame {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(btn_realizado)
+                        .addGap(9, 9, 9)
+                        .addComponent(btn_realizado1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_cancelado)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -301,7 +357,7 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(btn_reporte)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cb_realizado)
-                        .addGap(0, 284, Short.MAX_VALUE))
+                        .addGap(0, 201, Short.MAX_VALUE))
                     .addComponent(jScrollPane6))
                 .addContainerGap())
         );
@@ -314,7 +370,8 @@ public class Administrador extends javax.swing.JFrame {
                     .addComponent(btn_realizado)
                     .addComponent(btn_cancelado)
                     .addComponent(btn_reporte)
-                    .addComponent(cb_realizado))
+                    .addComponent(cb_realizado)
+                    .addComponent(btn_realizado1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(92, Short.MAX_VALUE))
@@ -375,7 +432,15 @@ public class Administrador extends javax.swing.JFrame {
             new String [] {
                 "ID", "Paciente", "Doctor", "Fecha", "Procedimientos"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jt_citas.setDefaultEditor(Object.class, null);
         jt_citas.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -471,20 +536,21 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 528, Short.MAX_VALUE)
-                        .addGap(18, 18, 18))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btn_nuevaCita, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_guardar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_eliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(57, 57, 57)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbl_idCita)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(18, 18, 18))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -524,7 +590,7 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(jLabel8)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
                                 .addComponent(jButton3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jButton4)
@@ -554,7 +620,15 @@ public class Administrador extends javax.swing.JFrame {
             new String [] {
                 "ID", "Usuario", "Correo", "Telefono"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jt_pacientes.setDefaultEditor(Object.class, null);
         jt_pacientes.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -610,8 +684,8 @@ public class Administrador extends javax.swing.JFrame {
                     .addComponent(lbl_idPaciente)
                     .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 515, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 559, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -683,7 +757,15 @@ public class Administrador extends javax.swing.JFrame {
             new String [] {
                 "ID", "Usuario", "Nombre", "Tipo"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jt_usuarios.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jt_usuariosMouseClicked(evt);
@@ -720,8 +802,8 @@ public class Administrador extends javax.swing.JFrame {
                     .addComponent(lbl_id)
                     .addComponent(cb_tipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 497, Short.MAX_VALUE)
-                .addGap(30, 30, 30))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 546, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -770,15 +852,13 @@ public class Administrador extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(10, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(50, 50, 50)
-                        .addComponent(btn_salir))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addGap(50, 50, 50)
+                .addComponent(btn_salir))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jTabbedPane1)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -947,7 +1027,7 @@ public class Administrador extends javax.swing.JFrame {
                         for (int i = 0; i < modelo.getSize(); i++) {
                             procedimientosSeleccionados.add((Procedimientos)modelo.getElementAt(i));
                         }
-                        Citas cita = new Citas(doctorSeleccionado, pacienteSeleccionado, fechaStr, hora, procedimientosSeleccionados, id, "");
+                        Citas cita = new Citas(doctorSeleccionado, pacienteSeleccionado, fechaStr, hora, procedimientosSeleccionados, id);
                         if(citasAdmin.guardarCita(cita)){
                             JOptionPane.showMessageDialog(this, "Cita guardada exitosamente");
                             cargarTablaCitas();
@@ -1164,6 +1244,111 @@ public class Administrador extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jt_citasPrincipalMouseClicked
 
+    private void btn_realizadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_realizadoActionPerformed
+        if(jt_citasPrincipal.getSelectedRow() != -1){
+           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+           int row = jt_citasPrincipal.getSelectedRow();
+           Citas cita = (Citas)modelo.getValueAt(row, 0);
+           cita.setEstado("Realizado");
+           citasAdmin.guardarCita(cita);
+           cb_realizado.setSelected(false);
+           cargarTablaCitas();
+           JOptionPane.showMessageDialog(this, "Cita completada");
+        }
+    }//GEN-LAST:event_btn_realizadoActionPerformed
+
+    private void btn_realizado1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_realizado1ActionPerformed
+        if(jt_citasPrincipal.getSelectedRow() != -1){
+           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+           int row = jt_citasPrincipal.getSelectedRow();
+           Citas cita = (Citas)modelo.getValueAt(row, 0);
+           cita.setEstado("No Realizado");
+           citasAdmin.guardarCita(cita);
+           cb_realizado.setSelected(false);
+           cargarTablaCitas();
+           JOptionPane.showMessageDialog(this, "Cita editada");
+        }
+    }//GEN-LAST:event_btn_realizado1ActionPerformed
+
+    private void btn_canceladoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_canceladoActionPerformed
+        if(jt_citasPrincipal.getSelectedRow() != -1){
+           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+           int row = jt_citasPrincipal.getSelectedRow();
+           Citas cita = (Citas)modelo.getValueAt(row, 0);
+           cita.setEstado("Cancelado");
+           citasAdmin.guardarCita(cita);
+           cb_realizado.setSelected(false);
+           cargarTablaCitas();
+           JOptionPane.showMessageDialog(this, "Cita editada");
+        }
+    }//GEN-LAST:event_btn_canceladoActionPerformed
+
+    private void cb_realizadoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cb_realizadoItemStateChanged
+        if (cb_realizado.isSelected()) {
+            cargarTablaPrincipal(" WHERE ESTADO = 'Realizado'");
+        } else {
+            cargarTablaPrincipal(" WHERE ESTADO = 'No Realizado' OR ESTADO = 'Cancelado'");
+        }
+    }//GEN-LAST:event_cb_realizadoItemStateChanged
+
+    private void btn_enviarRecordatorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_enviarRecordatorioActionPerformed
+        if(jt_citasPrincipal.getSelectedRow() != -1){
+            DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+           int row = jt_citasPrincipal.getSelectedRow();
+           Citas cita = (Citas)modelo.getValueAt(row, 0);
+           if(cita.getEstado().equals("Realizado")){
+               JOptionPane.showMessageDialog(this, "Este paciente ya fue atendido");
+           }else if(cita.getEstado().equals("Cancelado")){
+               JOptionPane.showMessageDialog(this, "Esta cita está cancelada. Realice la reprogramación manualmente");
+           }else{
+                try{
+                    String url = "http://localhost:3000/enviar-mensaje";
+                    JSONObject cuerpo = new JSONObject();
+                    cuerpo.put("to", cita.getPaciente().getTelefono());
+                    cuerpo.put("message", "Buenos días! Le escribimos de soluciones dentales para recordarle que tiene una cita programada para el " + cita.getFecha() + " a las " + cita.getHora() + ". Muchas gracias!");
+
+                    String cuerpoStr = cuerpo.toString();
+
+                    URL apiUrl = new URL(url);
+                    HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+
+                    OutputStream outputStream = connection.getOutputStream();
+                    outputStream.write(cuerpoStr.getBytes("UTF-8"));
+                    outputStream.flush();
+                    outputStream.close();
+
+                    int responseCode = connection.getResponseCode();
+                    String responseMessage = connection.getResponseMessage();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = reader.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    reader.close();
+
+                    JSONObject jsonResponse = new JSONObject(response.toString());
+                    boolean success = jsonResponse.getBoolean("success");
+
+                    if (success) {
+                        JOptionPane.showMessageDialog(null, "El mensaje se envió exitosamente.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No se pudo enviar el mensaje.");
+                    }
+
+                    connection.disconnect();
+                    
+                }catch(Exception ex){
+                   ex.printStackTrace();
+                }
+           }
+        }
+    }//GEN-LAST:event_btn_enviarRecordatorioActionPerformed
+
     private void habilitarUsuario(){
         tb_nombre.setEnabled(true);
         cb_tipoUsuario.setEnabled(true);
@@ -1266,6 +1451,7 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JButton btn_nuevoUsuario;
     private javax.swing.JButton btn_quitarProcedimiento;
     private javax.swing.JButton btn_realizado;
+    private javax.swing.JButton btn_realizado1;
     private javax.swing.JButton btn_reporte;
     private javax.swing.JButton btn_salir;
     private javax.swing.JComboBox<String> cb_doctores;

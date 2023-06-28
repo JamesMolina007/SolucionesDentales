@@ -16,20 +16,29 @@ public class Citas {
     private Pacientes paciente;
     private String fecha;
     private String hora;
-    private String estado;
+    private String estado = "No Realizado";
     private ArrayList<Procedimientos> procedimiento;
 
     public Citas() {
     }
 
+    public Citas(Doctores doctor, Pacientes paciente, String fecha, String hora, ArrayList<Procedimientos> procedimiento, int id) {
+        this.doctor = doctor;
+        this.paciente = paciente;
+        this.fecha = fecha;
+        this.hora = hora;
+        this.procedimiento = procedimiento;
+        this.id = id;
+    }
+    
     public Citas(Doctores doctor, Pacientes paciente, String fecha, String hora, ArrayList<Procedimientos> procedimiento, int id, String estado) {
         this.doctor = doctor;
         this.paciente = paciente;
         this.fecha = fecha;
         this.hora = hora;
         this.procedimiento = procedimiento;
-        this.estado = estado;
         this.id = id;
+        this.estado = estado;
     }
     
     
