@@ -1,6 +1,6 @@
 const express = require('express');
 const qrcode = require('qrcode-terminal');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia  } = require('whatsapp-web.js');
 console.log("Conectando...");
 const app = express();
 
@@ -34,6 +34,21 @@ app.post('/enviar-mensaje', (req, res) => {
   }).catch((error) => {
     console.error('Error al enviar el mensaje:', error);
     res.status(500).json({ success: false, message: 'Error al enviar el mensaje' });
+  });
+});
+
+app.post('/enviar-archivo', (req, res) => {
+  const phoneNumber = `504${req.body.to}@c.us`;
+  const message = req.body.message;
+  const file = req.body.file;
+  const media = MessageMedia.fromFilePath(file);
+
+  client.sendMessage(phoneNumber, media, { caption: message }).then(() => {
+    console.log('Archivo enviado correctamente');
+    res.json({ success: true, message: 'Archivo enviado correctamente' });
+  }).catch((error) => {
+    console.error('Error al enviar el archivo:', error);
+    res.status(500).json({ success: false, message: 'Error al enviar el archivo' });
   });
 });
 
