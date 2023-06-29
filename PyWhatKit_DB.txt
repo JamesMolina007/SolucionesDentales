@@ -1,1 +1,25 @@
-shell:startup
+Date: 26/6/2023
+Time: 20:53
+Phone Number: +50488001087
+Message: Buenos días!Le escribimos desde soluciones dentales para recordar que tiene una cita para el día 27/06/2023 a las 8:00 amGracias!
+--------------------
+Date: 26/6/2023
+Time: 21:5
+Phone Number: +50488001087
+Message: HOLA FLOCH
+--------------------
+Date: 26/6/2023
+Time: 21:12
+Phone Number: +50488001087
+Message: HOLA FLOCH
+--------------------
+Date: 26/6/2023
+Time: 21:15
+Phone Number: +50488001087
+Message: HOLA FLOCH
+--------------------
+Date: 26/6/2023
+Time: 21:17
+Phone Number: +50488001087
+Message: HOLA FLOCH
+--------------------

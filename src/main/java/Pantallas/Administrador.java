@@ -7,12 +7,15 @@ package Pantallas;
 import Administradores.CitasAdmin;
 import Administradores.PacientesAdmin;
 import Administradores.ProcedimientosAdmin;
+import Administradores.RegistrosAdmin;
+import Administradores.Reporteria;
 import Administradores.UsuariosAdmin;
 import Modelos.Administradores;
 import Modelos.Citas;
 import Modelos.Doctores;
 import Modelos.Pacientes;
 import Modelos.Procedimientos;
+import Modelos.Registros;
 import Modelos.Usuarios;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -24,13 +27,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -52,20 +59,25 @@ public class Administrador extends javax.swing.JFrame {
     private ProcedimientosAdmin procedimientosAdmin = new ProcedimientosAdmin();
     private PacientesAdmin pacientesAdmin = new PacientesAdmin();
     private CitasAdmin citasAdmin = new CitasAdmin();
+    private RegistrosAdmin registrosAdmin = new RegistrosAdmin();
     
     private ArrayList<Usuarios> usuarios = new ArrayList();
     private ArrayList<Pacientes> pacientes = new ArrayList();
     private ArrayList<Procedimientos> procedimientos = new ArrayList();
     private ArrayList<Citas> citas = new ArrayList();
+    private ArrayList<Registros> registros = new ArrayList();
     
     public Administrador() {
         initComponents();
         this.setLocationRelativeTo(null);
+	ImageIcon icon = new ImageIcon("./assets/images/icono_2.png");
+        setIconImage(icon.getImage());
         
         cargarTablaUsuarios();
         cargarTablaPacientes();
         cargarListaProcedimientos();
         cargarTablaCitas();
+        cargarTablaRegistros();
         
         lbl_id.setVisible(false);
         lbl_idPaciente.setVisible(false);
@@ -115,6 +127,17 @@ public class Administrador extends javax.swing.JFrame {
         modelo.removeAllElements();
         for (Procedimientos procedimiento : procedimientos) {
             modelo.addElement(procedimiento);
+        }
+    }
+    
+    private void cargarTablaRegistros(){
+        registros = registrosAdmin.obtenerRegistros();
+        DefaultTableModel modelo = (DefaultTableModel)jt_registros.getModel();
+        int cantidadFilas = modelo.getRowCount();
+        for (int i = 0; i < cantidadFilas; i++) modelo.removeRow(0);
+        for (Registros registro : registros) {
+            Object[] fila = {registro.getPaciente(), registro.getCorreo(), registro.getCelular(), registro.getDoctor(), registro.getProcedimiento(), registro.getFecha(), registro.getHora(), registro.getEstado()};
+            modelo.addRow(fila);
         }
     }
     
@@ -169,17 +192,25 @@ public class Administrador extends javax.swing.JFrame {
 
                 if(estado.equals("Realizado")){
                     cellComponent.setBackground(Color.GREEN);
+                    cellComponent.setForeground(Color.WHITE);
                 }else if (estado.equals("Cancelado")) {
                     cellComponent.setBackground(Color.DARK_GRAY);
                     cellComponent.setForeground(Color.WHITE);
                 } else if (diffInDays >= 3) {
                     cellComponent.setBackground(Color.LIGHT_GRAY);
+                    cellComponent.setForeground(Color.BLACK);
                 }else if (diffInDays > 1) {
                     cellComponent.setBackground(Color.YELLOW);
+                    cellComponent.setForeground(Color.BLACK);
                 } else if (diffInDays <= 1 && diffInDays > 0) {
                     cellComponent.setBackground(Color.ORANGE);
-                } else if (diffInDays <= 0) {
+                    cellComponent.setForeground(Color.WHITE);
+                } else if (diffInDays == 0) {
                     cellComponent.setBackground(Color.RED);
+                    cellComponent.setForeground(Color.WHITE);
+                }else{
+                    cellComponent.setBackground(Color.BLACK);
+                    cellComponent.setForeground(Color.WHITE);
                 }
 
                 return cellComponent;
@@ -214,6 +245,11 @@ public class Administrador extends javax.swing.JFrame {
         btn_reporte = new javax.swing.JButton();
         cb_realizado = new javax.swing.JCheckBox();
         btn_realizado1 = new javax.swing.JButton();
+        btn_recordarDiaSiguiente = new javax.swing.JButton();
+        btn_reporteMensual = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        jt_registros = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -301,7 +337,7 @@ public class Administrador extends javax.swing.JFrame {
         });
         jScrollPane6.setViewportView(jt_citasPrincipal);
 
-        btn_enviarRecordatorio.setText("Enviar Recordatorio");
+        btn_enviarRecordatorio.setText("Enviar recordatorio");
         btn_enviarRecordatorio.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_enviarRecordatorioActionPerformed(evt);
@@ -322,7 +358,12 @@ public class Administrador extends javax.swing.JFrame {
             }
         });
 
-        btn_reporte.setText("Reporte");
+        btn_reporte.setText("Generar reporte");
+        btn_reporte.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_reporteActionPerformed(evt);
+            }
+        });
 
         cb_realizado.setText("Realizados");
         cb_realizado.addItemListener(new java.awt.event.ItemListener() {
@@ -338,6 +379,20 @@ public class Administrador extends javax.swing.JFrame {
             }
         });
 
+        btn_recordarDiaSiguiente.setText("Recordatorio dia siguiente");
+        btn_recordarDiaSiguiente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_recordarDiaSiguienteActionPerformed(evt);
+            }
+        });
+
+        btn_reporteMensual.setText("Reporte mensual");
+        btn_reporteMensual.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_reporteMensualActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
@@ -345,39 +400,81 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGap(16, 16, 16)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 781, Short.MAX_VALUE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(btn_realizado)
-                        .addGap(9, 9, 9)
-                        .addComponent(btn_realizado1)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(btn_recordarDiaSiguiente)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btn_reporteMensual, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(btn_enviarRecordatorio, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btn_reporte, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_cancelado)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btn_realizado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btn_realizado1, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_enviarRecordatorio)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_reporte)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cb_realizado)
-                        .addGap(0, 201, Short.MAX_VALUE))
-                    .addComponent(jScrollPane6))
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btn_cancelado, javax.swing.GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE)
+                            .addComponent(cb_realizado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
+                .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_enviarRecordatorio)
-                    .addComponent(btn_realizado)
-                    .addComponent(btn_cancelado)
                     .addComponent(btn_reporte)
-                    .addComponent(cb_realizado)
-                    .addComponent(btn_realizado1))
+                    .addComponent(btn_realizado)
+                    .addComponent(cb_realizado))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 386, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(92, Short.MAX_VALUE))
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_recordarDiaSiguiente)
+                    .addComponent(btn_reporteMensual)
+                    .addComponent(btn_realizado1)
+                    .addComponent(btn_cancelado))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(93, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Citas", jPanel4);
+
+        jt_registros.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Paciente", "Correo", "Celular", "Doctor", "Procedimientos", "Fecha", "Hora", "Estado"
+            }
+        ));
+        jScrollPane7.setViewportView(jt_registros);
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 503, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Registros", jPanel5);
 
         jLabel6.setText("Paciente:");
 
@@ -536,21 +633,20 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addComponent(lbl_idCita)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btn_nuevaCita, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btn_guardar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_eliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_idCita)
-                        .addGap(18, 18, 18))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 565, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addComponent(btn_eliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -558,56 +654,56 @@ public class Administrador extends javax.swing.JFrame {
                 .addGap(19, 19, 19)
                 .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_guardar)
-                    .addComponent(btn_eliminar)
-                    .addComponent(lbl_idCita)
-                    .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_nuevaCita))
+                .addComponent(cb_pacientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel8)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel9)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tb_correo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel10)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tb_celular, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel7)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cb_doctores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                        .addComponent(jButton3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel11)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jd_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cb_hora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel8)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
-                                .addComponent(jButton3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton4)
-                                .addGap(111, 111, 111))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(btn_agregarProcedimiento)
-                                    .addComponent(btn_quitarProcedimiento))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addComponent(jButton4)
+                        .addGap(111, 111, 111))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btn_agregarProcedimiento)
+                            .addComponent(btn_quitarProcedimiento))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_nuevaCita)
+                    .addComponent(btn_guardar)
+                    .addComponent(btn_eliminar)
+                    .addComponent(lbl_idCita))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 396, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Citas", jPanel1);
@@ -679,12 +775,17 @@ public class Administrador extends javax.swing.JFrame {
                     .addComponent(jLabel13)
                     .addComponent(jLabel14)
                     .addComponent(jLabel15)
-                    .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lbl_idPaciente)
-                    .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lbl_idPaciente))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 559, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 559, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -692,13 +793,9 @@ public class Administrador extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(38, 38, 38)
                         .addComponent(tb_pacienteAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel14)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_correoAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -706,21 +803,30 @@ public class Administrador extends javax.swing.JFrame {
                         .addComponent(jLabel15)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_celularAdmin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_eliminarPaciente, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addGap(128, 128, 128)
                         .addComponent(lbl_idPaciente))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(143, Short.MAX_VALUE))
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btn_guardarPaciente, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btn_eliminarPaciente)
+                                .addComponent(btn_nuevoPaciente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 353, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(130, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Pacientes", jPanel3);
 
         jLabel2.setText("Usuario:");
+
+        tb_nombre.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tb_nombreActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Nombre:");
 
@@ -796,46 +902,49 @@ public class Administrador extends javax.swing.JFrame {
                     .addComponent(tb_nombre, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
                     .addComponent(jLabel2)
                     .addComponent(tb_usuario)
-                    .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lbl_id)
                     .addComponent(cb_tipoUsuario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 546, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 546, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(14, 14, 14)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_nuevoUsuario)
+                    .addComponent(btn_eliminarUsuario)
+                    .addComponent(btn_guardarUsuario)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(btn_nuevoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_usuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(tb_contrasena, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cb_tipoUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btn_guardarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_eliminarUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(53, 53, 53)
-                        .addComponent(lbl_id)))
-                .addContainerGap(108, Short.MAX_VALUE))
+                        .addGap(169, 169, 169)
+                        .addComponent(lbl_id))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 334, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(118, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Admin. Usuarios", jPanel2);
@@ -1246,40 +1355,49 @@ public class Administrador extends javax.swing.JFrame {
 
     private void btn_realizadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_realizadoActionPerformed
         if(jt_citasPrincipal.getSelectedRow() != -1){
-           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
-           int row = jt_citasPrincipal.getSelectedRow();
-           Citas cita = (Citas)modelo.getValueAt(row, 0);
-           cita.setEstado("Realizado");
-           citasAdmin.guardarCita(cita);
-           cb_realizado.setSelected(false);
-           cargarTablaCitas();
-           JOptionPane.showMessageDialog(this, "Cita completada");
+            int respuesta = JOptionPane.showConfirmDialog(null, "¿La cita ya fue realizada?", "Confirmación", JOptionPane.YES_NO_OPTION);
+            if (respuesta == JOptionPane.YES_OPTION) {
+               DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+               int row = jt_citasPrincipal.getSelectedRow();
+               Citas cita = (Citas)modelo.getValueAt(row, 0);
+               cita.setEstado("Realizado");
+               citasAdmin.guardarCita(cita);
+               cb_realizado.setSelected(false);
+               cargarTablaCitas();
+               JOptionPane.showMessageDialog(this, "Cita completada");
+            }
         }
     }//GEN-LAST:event_btn_realizadoActionPerformed
 
     private void btn_realizado1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_realizado1ActionPerformed
         if(jt_citasPrincipal.getSelectedRow() != -1){
-           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
-           int row = jt_citasPrincipal.getSelectedRow();
-           Citas cita = (Citas)modelo.getValueAt(row, 0);
-           cita.setEstado("No Realizado");
-           citasAdmin.guardarCita(cita);
-           cb_realizado.setSelected(false);
-           cargarTablaCitas();
-           JOptionPane.showMessageDialog(this, "Cita editada");
+            int respuesta = JOptionPane.showConfirmDialog(null, "¿La cita no se realizó?", "Confirmación", JOptionPane.YES_NO_OPTION);
+            if (respuesta == JOptionPane.NO_OPTION) {
+                DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+                int row = jt_citasPrincipal.getSelectedRow();
+                Citas cita = (Citas)modelo.getValueAt(row, 0);
+                cita.setEstado("No Realizado");
+                citasAdmin.guardarCita(cita);
+                cb_realizado.setSelected(false);
+                cargarTablaCitas();
+                JOptionPane.showMessageDialog(this, "Cita editada");
+            }
         }
     }//GEN-LAST:event_btn_realizado1ActionPerformed
 
     private void btn_canceladoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_canceladoActionPerformed
         if(jt_citasPrincipal.getSelectedRow() != -1){
-           DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
-           int row = jt_citasPrincipal.getSelectedRow();
-           Citas cita = (Citas)modelo.getValueAt(row, 0);
-           cita.setEstado("Cancelado");
-           citasAdmin.guardarCita(cita);
-           cb_realizado.setSelected(false);
-           cargarTablaCitas();
-           JOptionPane.showMessageDialog(this, "Cita editada");
+            int respuesta = JOptionPane.showConfirmDialog(null, "¿La cita se canceló?", "Confirmación", JOptionPane.YES_NO_OPTION);
+            if (respuesta == JOptionPane.YES_OPTION) {
+                DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
+                int row = jt_citasPrincipal.getSelectedRow();
+                Citas cita = (Citas)modelo.getValueAt(row, 0);
+                cita.setEstado("Cancelado");
+                citasAdmin.guardarCita(cita);
+                cb_realizado.setSelected(false);
+                cargarTablaCitas();
+                JOptionPane.showMessageDialog(this, "Cita editada");
+            }
         }
     }//GEN-LAST:event_btn_canceladoActionPerformed
 
@@ -1293,6 +1411,7 @@ public class Administrador extends javax.swing.JFrame {
 
     private void btn_enviarRecordatorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_enviarRecordatorioActionPerformed
         if(jt_citasPrincipal.getSelectedRow() != -1){
+            btn_enviarRecordatorio.setText("Enviando...");
             DefaultTableModel modelo = (DefaultTableModel)jt_citasPrincipal.getModel();
            int row = jt_citasPrincipal.getSelectedRow();
            Citas cita = (Citas)modelo.getValueAt(row, 0);
@@ -1301,53 +1420,84 @@ public class Administrador extends javax.swing.JFrame {
            }else if(cita.getEstado().equals("Cancelado")){
                JOptionPane.showMessageDialog(this, "Esta cita está cancelada. Realice la reprogramación manualmente");
            }else{
-                try{
-                    String url = "http://localhost:3000/enviar-mensaje";
-                    JSONObject cuerpo = new JSONObject();
-                    cuerpo.put("to", cita.getPaciente().getTelefono());
-                    cuerpo.put("message", "Buenos días! Le escribimos de soluciones dentales para recordarle que tiene una cita programada para el " + cita.getFecha() + " a las " + cita.getHora() + ". Muchas gracias!");
-
-                    String cuerpoStr = cuerpo.toString();
-
-                    URL apiUrl = new URL(url);
-                    HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    connection.setDoOutput(true);
-
-                    OutputStream outputStream = connection.getOutputStream();
-                    outputStream.write(cuerpoStr.getBytes("UTF-8"));
-                    outputStream.flush();
-                    outputStream.close();
-
-                    int responseCode = connection.getResponseCode();
-                    String responseMessage = connection.getResponseMessage();
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    String inputLine;
-                    StringBuilder response = new StringBuilder();
-                    while ((inputLine = reader.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    reader.close();
-
-                    JSONObject jsonResponse = new JSONObject(response.toString());
-                    boolean success = jsonResponse.getBoolean("success");
-
+                int respuesta = JOptionPane.showConfirmDialog(null, "¿Desea enviar un recordatorio a " + cita.getPaciente().getPaciente() + "?", "Confirmación", JOptionPane.YES_NO_OPTION);
+                if (respuesta == JOptionPane.YES_OPTION) {
+                    boolean success = enviar_mensaje(cita);
                     if (success) {
                         JOptionPane.showMessageDialog(null, "El mensaje se envió exitosamente.");
                     } else {
                         JOptionPane.showMessageDialog(null, "No se pudo enviar el mensaje.");
                     }
-
-                    connection.disconnect();
-                    
-                }catch(Exception ex){
-                   ex.printStackTrace();
                 }
            }
         }
+        btn_enviarRecordatorio.setText("Enviar Recordatorio");
     }//GEN-LAST:event_btn_enviarRecordatorioActionPerformed
+
+    private void btn_reporteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_reporteActionPerformed
+        int respuesta = JOptionPane.showConfirmDialog(null, "¿Desea generar un reporte a la fecha de hoy?", "Confirmación", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) {
+            btn_reporte.setText("Generando...");
+            Reporteria reporte = new Reporteria(this, btn_reporte);
+            Thread hiloReporte = new Thread(reporte);
+            hiloReporte.start();
+        }
+    }//GEN-LAST:event_btn_reporteActionPerformed
+
+    private void tb_nombreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tb_nombreActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tb_nombreActionPerformed
+
+    private void btn_recordarDiaSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_recordarDiaSiguienteActionPerformed
+        
+        LocalDate currentDate = LocalDate.now();
+        LocalDate nextDay = currentDate.plusDays(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String diaFiltro = nextDay.format(formatter);
+        ArrayList<Citas> citasDiaSiguiente = citasAdmin.obtenerCitas(" WHERE FECHA='" + diaFiltro + "'");
+        ArrayList<Citas> fallidos = new ArrayList();
+        String citasStr = "";
+        for (Citas cita : citasDiaSiguiente) {
+            citasStr += cita.getPaciente().getPaciente() + "\n";
+        }
+        int respuesta = JOptionPane.showConfirmDialog(null, "¿Desea enviar un recordatorio a los pacientes: \n" + citasStr + "?", "Confirmación", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) {
+            for (Citas cita : citasDiaSiguiente) {
+                if( !enviar_mensaje(cita) )
+                    fallidos.add(cita);
+            }
+            if(fallidos.size() > 0){
+                String mensaje = "Las citas de los siguientes pacientes no fueron notificadas: \n";
+                for (Citas fallido : fallidos) {
+                    mensaje += fallido.getPaciente() + "\n";
+                }
+                JOptionPane.showMessageDialog(this, mensaje);
+            }else{
+                JOptionPane.showMessageDialog(this, "Todos los recordatorios fueron enviados");
+            }
+        }
+    }//GEN-LAST:event_btn_recordarDiaSiguienteActionPerformed
+
+    private void btn_reporteMensualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_reporteMensualActionPerformed
+        int respuesta = JOptionPane.showConfirmDialog(null, "¿Desea generar un reporte del mes anterior?\nAl generar el reporte se borrarán todas las citas canceladas y realizadas (pasaran a registros)", "Confirmación", JOptionPane.YES_NO_OPTION);
+        if (respuesta == JOptionPane.YES_OPTION) {
+            LocalDate primerDiaMesActual = LocalDate.now().withDayOfMonth(1);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+            String fechaFiltro = primerDiaMesActual.format(formatter);
+            String filtro = " WHERE CDate(fecha) < CDate('" + fechaFiltro + "') ";
+            
+            btn_reporteMensual.setText("Generando...");
+            Reporteria reporte = new Reporteria(this, btn_reporteMensual);
+            reporte.setFiltro(filtro);
+            Thread hiloReporte = new Thread(reporte);
+            hiloReporte.start();
+            
+            ArrayList<Citas> registrosNuevos = citasAdmin.obtenerCitas(filtro);
+            registrosAdmin.registrar(registrosNuevos);
+            cargarTablaCitas();
+            cargarTablaRegistros();
+        }
+    }//GEN-LAST:event_btn_reporteMensualActionPerformed
 
     private void habilitarUsuario(){
         tb_nombre.setEnabled(true);
@@ -1401,6 +1551,47 @@ public class Administrador extends javax.swing.JFrame {
         btn_quitarProcedimiento.setEnabled(false);
     }
     
+    private boolean enviar_mensaje(Citas cita){
+        try{
+            String url = "http://localhost:3000/enviar-mensaje";
+            JSONObject cuerpo = new JSONObject();
+            cuerpo.put("to", cita.getPaciente().getTelefono());
+            cuerpo.put("message", "Buen día! Le escribimos de soluciones dentales para recordarle que tiene una cita programada para el " + cita.getFecha() + " a las " + cita.getHora() + ". Muchas gracias!");
+            
+            String cuerpoStr = cuerpo.toString();
+            URL apiUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+            
+            OutputStream outputStream = connection.getOutputStream();
+            outputStream.write(cuerpoStr.getBytes("UTF-8"));
+            outputStream.flush();
+            outputStream.close();
+            
+            int responseCode = connection.getResponseCode();
+            String responseMessage = connection.getResponseMessage();
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = reader.readLine()) != null) {
+                response.append(inputLine);
+            }
+            reader.close();
+            
+            JSONObject jsonResponse = new JSONObject(response.toString());
+            boolean success = jsonResponse.getBoolean("success");
+            connection.disconnect();
+            return success;
+            
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        return false;
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -1452,7 +1643,9 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JButton btn_quitarProcedimiento;
     private javax.swing.JButton btn_realizado;
     private javax.swing.JButton btn_realizado1;
+    private javax.swing.JButton btn_recordarDiaSiguiente;
     private javax.swing.JButton btn_reporte;
+    private javax.swing.JButton btn_reporteMensual;
     private javax.swing.JButton btn_salir;
     private javax.swing.JComboBox<String> cb_doctores;
     private javax.swing.JComboBox<String> cb_hora;
@@ -1481,12 +1674,14 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JTabbedPane jTabbedPane1;
     private com.toedter.calendar.JDateChooser jd_fecha;
     private javax.swing.JList<String> jl_procedimientoElegido;
@@ -1494,6 +1689,7 @@ public class Administrador extends javax.swing.JFrame {
     private javax.swing.JTable jt_citas;
     private javax.swing.JTable jt_citasPrincipal;
     private javax.swing.JTable jt_pacientes;
+    private javax.swing.JTable jt_registros;
     private javax.swing.JTable jt_usuarios;
     private javax.swing.JLabel lbl_id;
     private javax.swing.JLabel lbl_idCita;

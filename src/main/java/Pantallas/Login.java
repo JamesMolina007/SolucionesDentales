@@ -13,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 /**
  *
  * @author James Josue Molina
@@ -29,6 +31,8 @@ public class Login extends javax.swing.JFrame {
         this.setVisible(true);
         initComponents();
         this.setLocationRelativeTo(null);
+	ImageIcon icon = new ImageIcon("./assets/images/icono_2.png");
+        setIconImage(icon.getImage());
         usuarios = usuariosAdmin.obtenerUsuarios();
         usuarios.add(new Administradores("admin","admin", "Administrador"));
         
@@ -40,6 +44,7 @@ public class Login extends javax.swing.JFrame {
                 if(usuarioTemp instanceof Doctores){
                     Doctor doctor = new Doctor();
                     doctor.setUsuario(usuarioTemp);
+                    doctor.postCarga();
                     doctor.setVisible(true);
                     this.setVisible(false);
                 }else if(usuarioTemp instanceof Administradores){
@@ -143,6 +148,7 @@ public class Login extends javax.swing.JFrame {
                 if(usuario instanceof Doctores){
                     Doctor doctor = new Doctor();
                     doctor.setUsuario(usuario);
+                    doctor.postCarga();
                     doctor.setVisible(true);
                     this.setVisible(false);
                 }else if(usuario instanceof Administradores){
@@ -154,6 +160,7 @@ public class Login extends javax.swing.JFrame {
                 return;
             }
         }
+        JOptionPane.showMessageDialog(this, "Usuario y/o contraseña incorrecta");
     }//GEN-LAST:event_btn_ingresarActionPerformed
 
     /**

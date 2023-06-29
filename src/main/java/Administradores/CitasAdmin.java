@@ -173,6 +173,7 @@ public class CitasAdmin {
                 dba.query.addBatch(query);
             }
             dba.query.executeBatch();
+            dba.query.clearBatch();
             dba.commit();
             return true;
         }catch(Exception ex){
